@@ -1,0 +1,22 @@
+name: Proponer una mejora / Feature request
+description: Una idea, un proveedor nuevo o un caso de uso. / An idea, a new provider or a use case.
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Qué problema resuelve / What problem it solves
+    validations:
+      required: true
+  - type: textarea
+    id: propuesta
+    attributes:
+      label: Qué propone / What you propose
+    validations:
+      required: true
+  - type: textarea
+    id: reglas
+    attributes:
+      label: ¿Respeta las reglas de CONTRIBUTING.md?
+      description: Mismo contenido entre disposiciones, ausente no es cero, dinero en Decimal, nada sensible en disco, procedencia declarada.
+    validations:
+      required: false

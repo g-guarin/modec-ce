@@ -1,0 +1,40 @@
+name: Informe en GitHub Pages
+
+# Manual a propósito: requiere activar Pages (Settings → Pages → Source: GitHub Actions) y
+# publica solo la simulación, no los pilotos.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Generar informe
+        run: |
+          python -B -m modec_ce simular
+          python -B -m modec_ce sensibilidad
+          python -B -m modec_ce informe
+          mkdir -p _site
+          cp resultados/informe.html _site/index.html
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+      - id: despliegue
+        uses: actions/deploy-pages@v5

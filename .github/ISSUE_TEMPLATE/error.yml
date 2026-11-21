@@ -1,0 +1,42 @@
+name: Reportar un error / Bug report
+description: Algo no funciona como dice la documentación. / Something does not work as documented.
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Si el problema es de **seguridad**, no lo publique aquí: use *Security → Report a vulnerability*.
+        For **security** problems, do not post here: use *Security → Report a vulnerability*.
+        No pegue claves, prompts ni datos personales. / Do not paste keys, prompts or personal data.
+  - type: textarea
+    id: que-paso
+    attributes:
+      label: Qué pasó / What happened
+      description: Qué esperaba y qué obtuvo.
+    validations:
+      required: true
+  - type: textarea
+    id: como-reproducir
+    attributes:
+      label: Cómo reproducirlo / How to reproduce
+      description: Comandos exactos. Para un piloto, indique el proveedor y si fue con `--ejecutar`.
+      render: shell
+    validations:
+      required: true
+  - type: input
+    id: entorno
+    attributes:
+      label: Entorno / Environment
+      description: Sistema operativo y versión de Python (`python --version`).
+    validations:
+      required: true
+  - type: dropdown
+    id: motor
+    attributes:
+      label: Motor de evidencia / Evidence engine
+      options:
+        - Cadena mínima integrada
+        - Núcleo PESD
+        - No aplica
+    validations:
+      required: false

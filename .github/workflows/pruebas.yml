@@ -1,0 +1,61 @@
+name: Pruebas
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite:
+    # Clon público: sin pesd-nucleo (cadena mínima integrada) y sin torch (la prueba local se omite).
+    name: ${{ matrix.os }} · Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.10", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Ejecutar la suite (sin red)
+        run: python -B -m unittest discover -s tests -v
+      - name: Simulación, sensibilidad e informe
+        run: |
+          python -B -m modec_ce simular
+          python -B -m modec_ce sensibilidad
+          python -B -m modec_ce informe
+      - name: Guardar informe y resultados
+        if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        uses: actions/upload-artifact@v7
+        with:
+          name: informe-modec-ce
+          path: resultados/
+          retention-days: 30
+
+  piloto-local:
+    # Transformador real en CPU con caché KV: confirma la medición de latencia de extremo a extremo.
+    name: Piloto local con torch (CPU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar torch para CPU
+        run: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Suite completa, incluida la prueba del servidor local
+        run: python -B -m unittest discover -s tests

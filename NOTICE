@@ -1,0 +1,14 @@
+MODEC-CE
+Copyright 2026 Giovany Guarín Ramírez
+
+Este producto se distribuye bajo la Licencia Apache, versión 2.0 (archivo LICENSE).
+
+Dependencia opcional no incluida:
+  pesd-nucleo 2.0.0 (núcleo PESD) es software propietario de Giovany Guarín Ramírez.
+  No forma parte de este repositorio ni está cubierto por la Licencia Apache 2.0.
+  MODEC-CE funciona sin él, con una cadena de evidencia mínima integrada; si está
+  instalado, MODEC-CE lo usa para sellar y verificar la evidencia.
+
+Metodología de origen:
+  MODEC (Metodología de Orquestación por Dinámica de Estados Comprimidos), del mismo autor.
+  La métrica C.1 replica un instrumento de la metodología MODEC que no forma parte de este repositorio.

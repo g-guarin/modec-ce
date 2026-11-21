@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modec-ce"
+dynamic = ["version"]
+description = "Costo y evidencia para orquestación multiagente sobre LLM: disposición consciente del caché de prefijos, historial en Super-Tokens y mediciones selladas"
+authors = [{ name = "Giovany Guarín Ramírez" }]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Natural Language :: Spanish",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.optional-dependencies]
+local = ["torch>=2.2"]
+
+[project.scripts]
+modec-ce = "modec_ce.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "modec_ce.__version__" }
+
+# v0.1.0 se usa desde el clon (python -m modec_ce) o con `pip install -e .`: las tarifas viven en
+# datos/precios.json, fuera del paquete, para que se revisen y actualicen a la vista.
+[tool.setuptools.packages.find]
+include = ["modec_ce*"]
