@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Vulnerabilidad de seguridad / Security vulnerability
+    url: https://github.com/g-guarin/modec-ce/security/advisories/new
+    about: Reporte privado. No lo publique como incidencia. / Private report; do not open a public issue.
+  - name: Preguntas y conversación / Questions and discussion
+    url: https://github.com/g-guarin/modec-ce/discussions
+    about: Para preguntas de uso y resultados de reproducciones. / For usage questions and reproduction results.

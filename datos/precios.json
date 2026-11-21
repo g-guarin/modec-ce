@@ -1,0 +1,49 @@
+{
+  "reference_id": "MODEC-CE-PRICES-2026-11-20",
+  "unit": "USD per 1,000,000 tokens",
+  "status": "DECLARED_RATE_REFERENCE; NOT_ACCOUNT_INVOICE. Read on 2026-11-20 from the official pages below; prices may change.",
+  "providers": {
+    "deepseek": {
+      "source_url": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "currency_iso_provenance": "USER_DECLARED_BILLING_CURRENCY_2026-11-17",
+      "models": {
+        "deepseek-flash": {
+          "peak": {"cache_hit": "0.006", "cache_miss": "0.30", "cache_write": "0.30", "output": "1.20"},
+          "offpeak": {"cache_hit": "0.003", "cache_miss": "0.15", "cache_write": "0.15", "output": "0.60"}
+        },
+        "deepseek-v4-pro": {
+          "peak": {"cache_hit": "0.044", "cache_miss": "1.32", "cache_write": "1.32", "output": "3.96"},
+          "offpeak": {"cache_hit": "0.022", "cache_miss": "0.66", "cache_write": "0.66", "output": "1.98"}
+        }
+      }
+    },
+    "openai": {
+      "source_url": "https://developers.openai.com/api/docs/pricing",
+      "models": {
+        "gpt-4.1-mini": {"standard": {"cache_hit": "0.10", "cache_miss": "0.40", "cache_write": "0.40", "output": "1.60"}},
+        "gpt-5-nano": {"standard": {"cache_hit": "0.005", "cache_miss": "0.05", "cache_write": "0.05", "output": "0.40"}},
+        "gpt-4o-mini": {"standard": {"cache_hit": "0.075", "cache_miss": "0.15", "cache_write": "0.15", "output": "0.60"}}
+      }
+    },
+    "anthropic": {
+      "source_url": "https://platform.claude.com/docs/en/about-claude/pricing",
+      "note": "Prompts up to 100,000 tokens. cache_write is the 5-minute write price (1.25x base input).",
+      "models": {
+        "claude-haiku-5-5": {"standard": {"cache_hit": "0.01", "cache_miss": "0.10", "cache_write": "0.125", "output": "0.50"}}
+      }
+    },
+    "openrouter": {
+      "source_url": "https://openrouter.ai/pricing",
+      "note": "Cost is taken from usage.cost when the platform reports it; derived prices below are the underlying model's list price and exclude the 5.5% credit fee.",
+      "models": {
+        "deepseek/deepseek-chat": {"standard": {"cache_hit": "0.006", "cache_miss": "0.30", "cache_write": "0.30", "output": "1.20"}}
+      }
+    },
+    "local": {
+      "source_url": "local",
+      "models": {
+        "mini-transformer-local": {"standard": {"cache_hit": "0", "cache_miss": "0", "cache_write": "0", "output": "0"}}
+      }
+    }
+  }
+}

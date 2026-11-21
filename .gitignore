@@ -1,0 +1,23 @@
+# Resultados locales: se regeneran con los comandos del README. Los pilotos con proveedor
+# pueden contener datos de facturación del titular; publíquelos solo a propósito.
+resultados/
+
+# Entornos y cachés
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+build/
+dist/
+*.egg-info/
+
+# Secretos (nunca deben llegar al repositorio)
+.env
+.env.*
+*.key
+*.pem
+*.secret
+
+# Documentos internos del titular (gobernanza de gasto)
+BORRADOR_ACTA_*.md

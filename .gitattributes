@@ -1,0 +1,10 @@
+# Fin de línea LF para todo texto: los resúmenes SHA-256 no cambian entre Windows y Linux.
+* text=auto eol=lf
+
+*.py   text eol=lf diff=python
+*.md   text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.toml text eol=lf
+# PowerShell 5.1 necesita CRLF y BOM en los .ps1
+*.ps1  text eol=crlf
