@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import html
 from decimal import Decimal
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from . import __version__
 
@@ -86,8 +87,10 @@ def _html_piloto(p: Mapping[str, Any]) -> str:
     return (f"<div class='tarjeta'><h3>{titulo}</h3><div class='kpis'>"
             f"<div class='tarjeta'><div class='cifra'>{_pct(ah.get('media'))}</div><div>{etiqueta_ahorro} "
             f"({ah.get('corridas_validas', 0)} corridas; mín {_pct(ah.get('min'))})</div></div>"
-            f"<div class='tarjeta'><div class='cifra'>{_pct(min(latencias) if latencias else None)}</div>"
-            f"<div>reducción mínima de latencia total por corrida</div></div>"
+            f"<div class='tarjeta'><div class='cifra'>{_rango_latencia(latencias)}</div>"
+            f"<div>latencia por corrida: dispersión, no efecto. "
+            f"{'Mejor en ' + str(sum(1 for x in latencias if x > 0)) + ' de ' + str(len(latencias)) + ' corridas' if latencias else 'sin datos'}"
+            f"</div></div>"
             f"<div class='tarjeta'><div class='cifra'>{'íntegra' if verif.get('integra') else 'revisar'}</div>"
             f"<div>cadena de evidencia ({verif.get('registros') or 0} registros; {html.escape(str(verif.get('motor_evidencia', 'pesd-nucleo')))})</div></div></div>"
             f"<table><tr><th>Corrida</th><th>Brazo</th><th>Llamadas</th><th>Acierto caché</th><th>Costo</th>"
@@ -95,6 +98,22 @@ def _html_piloto(p: Mapping[str, Any]) -> str:
             f"<p>Procedencia: {html.escape(str(p.get('procedencia')))}."
             f"{' Detenido: ' + html.escape(str(p['detenido'])) if p.get('detenido') else ''}</p>"
             f"{_cita_evidencia(p)}</div>")
+
+
+def _rango_latencia(latencias: Sequence[float]) -> str:
+    """El rango completo, nunca un extremo solo.
+
+    Esta ficha mostraba el peor dato de las corridas como si fuera el resultado. Elegir el dato
+    desfavorable es el mismo error que elegir el favorable: ninguno de los dos es la medición. Con
+    los pilotos publicados, MODEC-CE sale mejor en la mitad de las corridas y peor en la otra
+    mitad, así que lo que los datos sostienen es dispersión, no un efecto en ninguna dirección.
+    """
+    if not latencias:
+        return "—"
+    bajo, alto = min(latencias), max(latencias)
+    if bajo == alto:
+        return _pct(bajo)
+    return f"{_pct(bajo)} a {_pct(alto)}"
 
 
 def _cita_evidencia(p: Mapping[str, Any]) -> str:

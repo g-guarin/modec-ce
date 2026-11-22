@@ -402,6 +402,30 @@ class TablaSalidaTests(unittest.TestCase):
         self.assertLess(ahorros[-1], 0.2)
 
 
+class LatenciaInformeTests(unittest.TestCase):
+    """La ficha de latencia mostraba el peor dato de las corridas como si fuera el resultado.
+    Elegir el dato desfavorable es el mismo error que elegir el favorable."""
+
+    def test_muestra_el_rango_y_no_un_extremo(self):
+        self.assertEqual(informe._rango_latencia([-0.077, 0.029, 0.031]), "-7.7% a 3.1%")
+        self.assertEqual(informe._rango_latencia([0.02]), "2.0%")
+        self.assertEqual(informe._rango_latencia([]), "—")
+
+    def test_la_pagina_no_titula_la_latencia_con_un_solo_extremo(self):
+        from modec_ce import cli
+        pilotos = cli._recoger_pilotos()
+        if not pilotos:
+            self.skipTest("sin bitácoras")
+        pagina = informe.generar_html(simulacion.ejecutar(), pilotos)
+        self.assertNotIn("reducción mínima de latencia", pagina)
+        self.assertIn("dispersión, no efecto", pagina)
+        for p in pilotos:
+            lat = [d["reduccion_latencia"] for d in (p.get("corridas") or {}).values()
+                   if d.get("reduccion_latencia") is not None]
+            if len(lat) > 1 and min(lat) != max(lat):
+                self.assertIn(informe._rango_latencia(lat), pagina)
+
+
 class CasoDeUsoTests(unittest.TestCase):
     """El caso de uso presenta cifras como si fueran una entrega a un cliente. Si se desfasaran de
     la bitácora publicada, el repositorio estaría haciendo lo mismo que el documento critica:

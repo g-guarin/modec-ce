@@ -55,6 +55,15 @@ Cierra tres huecos de la 0.1.0 señalados en una auditoría del repositorio púb
 
 Suite de 38 a 50 pruebas.
 
+### La ficha de latencia dejaba de ser honesta al resumir
+
+- El informe titulaba la latencia con «reducción mínima por corrida», es decir, con el peor dato de
+  las tres. Elegir el dato desfavorable es el mismo error que elegir el favorable: ninguno de los
+  dos es la medición, y además contradecía al README, que ya declara que no hay efecto medible.
+- Ahora muestra el rango completo y cuántas corridas salieron mejor (`-7,7 % a 3,1 % · dispersión,
+  no efecto · mejor en 2 de 3 corridas`). Dos pruebas lo sostienen: una comprueba `_rango_latencia`
+  y otra que la página no vuelva a titular con un solo extremo.
+
 ### Caso de uso: cómo se ve una entrega hecha con esto
 
 - `docs/caso-de-uso.md`: un ejemplo trabajado de una entrega a un cliente, construido con la
