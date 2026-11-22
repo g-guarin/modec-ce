@@ -121,9 +121,10 @@ class CachePrefijosKV:
 
     def registrar(self, ids: tuple[int, ...], kv) -> None:
         self._guardar(ids, kv)                                        # R2
-        for previo, kv_previo in self.anteriores[-self.max_unidades:]:  # R3
+        for previo, _kv_previo in self.anteriores[-self.max_unidades:]:  # R3
             n = 0
-            for a, b in zip(ids, previo):
+            # strict=False a propósito: se compara el prefijo común y se detiene en el más corto.
+            for a, b in zip(ids, previo, strict=False):
                 if a != b:
                     break
                 n += 1

@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+title: "MODEC-CE: costo y evidencia para orquestación multiagente sobre LLM"
+message: "Si usa este software o sus mediciones, cítelo así."
+type: software
+authors:
+  - given-names: Giovany
+    family-names: "Guarín Ramírez"
+    alias: g-guarin
+    city: "La Ceja del Tambo"
+    region: Antioquia
+    country: CO
+repository-code: "https://github.com/g-guarin/modec-ce"
+url: "https://g-guarin.github.io/modec-ce/"
+license: Apache-2.0
+version: 0.2.0
+abstract: >-
+  MODEC-CE mide cuánto se ahorra en una orquestación multiagente sobre modelos de lenguaje al
+  ordenar los segmentos del prompt de lo más estable a lo más variable, para aprovechar el caché
+  de prefijos del proveedor sin cambiar el contenido, comprobado con una huella SHA-256. Cada
+  medición se asienta en una cadena de evidencia encadenada por digest que un tercero puede
+  verificar con la herramienta incluida, sin instalar dependencias. El costo se deriva de una
+  tabla de tarifas fechada y cada cifra se marca como ESTIMADA, MEDIDA o DERIVADA; la ausencia de
+  un dato se declara en lugar de tratarse como cero.
+keywords:
+  - prompt caching
+  - multi-agent orchestration
+  - cost optimization
+  - verifiable evidence
+  - large language models
+  - reproducibility
+# Sin `date-released` mientras 0.2.0 no esté publicada como Release.
+# Sin correo: el proyecto enruta el contacto por el reporte privado de GitHub (ver CODE_OF_CONDUCT.md).
+# Sin DOI: se añadirá en `identifiers` cuando exista el archivo en Zenodo.

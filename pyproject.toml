@@ -35,3 +35,30 @@ version = { attr = "modec_ce.__version__" }
 # datos/precios.json, fuera del paquete, para que se revisen y actualicen a la vista.
 [tool.setuptools.packages.find]
 include = ["modec_ce*"]
+
+# Lint: se eligen las reglas que encuentran defectos (pyflakes, errores de pycodestyle y
+# bugbear), no las que reformatean. `line-length` recoge el ancho que ya usa el código: subirlo
+# o bajarlo es una decisión de estilo, y aquí no se reflow el código existente por gusto.
+[tool.ruff]
+line-length = 165
+target-version = "py310"
+extend-exclude = ["resultados"]
+
+[tool.ruff.lint]
+select = ["E", "F", "B"]
+
+# LimitesPiloto y ConfigMini son dataclasses frozen: usarlas como valor por omisión no comparte
+# estado mutable entre llamadas, así que B008 es un falso positivo en esos dos casos.
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["modec_ce.piloto.LimitesPiloto", "modec_ce.servidor_local.ConfigMini"]
+
+# Tipado: el código viene anotado, así que se comprueba de verdad. `torch` y `pesd_nucleo` son
+# opcionales y no están en el clon público; sus importaciones se ignoran en lugar de fingir tipos.
+[tool.mypy]
+python_version = "3.10"
+files = ["modec_ce", "herramientas"]
+ignore_missing_imports = true
+warn_unused_ignores = false
+warn_redundant_casts = true
+warn_unreachable = true
+no_implicit_optional = true

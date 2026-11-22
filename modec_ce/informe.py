@@ -5,6 +5,12 @@ import html
 from decimal import Decimal
 from typing import Any, Mapping, Sequence
 
+from . import __version__
+
+REPO = "https://github.com/g-guarin/modec-ce"
+AUTOR = "Giovany Guarín Ramírez"
+LICENCIA = "Apache-2.0"
+
 ETIQUETAS = {
     "ingenua_volatil": "Ingenua · metadatos arriba",
     "ingenua_rol": "Ingenua · rol arriba",
@@ -23,6 +29,10 @@ table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,t
 th{color:var(--suave);font-weight:600}.barra{height:12px;border-radius:3px;background:var(--b)}.barra.mejor{background:var(--a)}
 .cifra{font-size:28px;font-weight:700;color:var(--a)}.kpis{display:flex;gap:12px;flex-wrap:wrap}.kpis .tarjeta{flex:1;min-width:180px}
 code{font-size:13px}
+a{color:var(--a)}
+.meta{color:var(--suave);font-size:13px;margin:0 0 18px;padding-bottom:14px;border-bottom:1px solid var(--borde)}
+.meta b{color:var(--texto);font-weight:600}
+pre{background:var(--fondo);border:1px solid var(--borde);border-radius:6px;padding:8px 10px;overflow-x:auto;font-size:12.5px;margin:8px 0 0}
 """
 
 
@@ -73,7 +83,20 @@ def _html_piloto(p: Mapping[str, Any]) -> str:
             f"<table><tr><th>Corrida</th><th>Brazo</th><th>Llamadas</th><th>Acierto caché</th><th>Costo</th>"
             f"<th>Latencia total</th></tr>{''.join(filas)}</table>"
             f"<p>Procedencia: {html.escape(str(p.get('procedencia')))}."
-            f"{' Detenido: ' + html.escape(str(p['detenido'])) if p.get('detenido') else ''}</p></div>")
+            f"{' Detenido: ' + html.escape(str(p['detenido'])) if p.get('detenido') else ''}</p>"
+            f"{_cita_evidencia(p)}</div>")
+
+
+def _cita_evidencia(p: Mapping[str, Any]) -> str:
+    """Enlace a la bitácora publicada y la orden exacta para verificarla. Un número de ahorro sin
+    la ruta de su evidencia obliga al lector a creer; con la ruta, puede comprobarlo."""
+    carpeta = p.get("_carpeta")
+    if not carpeta or not p.get("_publicada"):
+        return ("<p>Bitácora no publicada en este repositorio: medición no verificable por terceros.</p>"
+                if carpeta else "")
+    c = html.escape(str(carpeta))
+    return (f"<p>Evidencia: <a href='{REPO}/tree/main/{c}'>{c}</a> · verificable sin instalar nada:</p>"
+            f"<pre>python herramientas/verificar_independiente.py {c}</pre>")
 
 
 def generar_html(simulacion: Mapping[str, Any], pilotos: Sequence[Mapping[str, Any]] = (),
@@ -83,7 +106,10 @@ def generar_html(simulacion: Mapping[str, Any], pilotos: Sequence[Mapping[str, A
     ah = simulacion["ahorro_relativo"]
     c1 = simulacion["compresion_c1"]
     filas = "".join(_fila_variante(n, v, maximo) for n, v in vs.items())
-    pil = "".join(_html_piloto(p) for p in pilotos) or "<div class='tarjeta'><p>Sin pilotos ejecutados.</p></div>"
+    pil = "".join(_html_piloto(p) for p in pilotos) or (
+        "<div class='tarjeta'><p>Este informe se generó sin ninguna bitácora de piloto a la vista. "
+        f"Las bitácoras publicadas están en <a href='{REPO}/tree/main/evidencia'>evidencia/</a> del "
+        "repositorio; no significa que no se hayan ejecutado pilotos.</p></div>")
     sens = ""
     if sensibilidad:
         filas_s = "".join(
@@ -99,6 +125,11 @@ def generar_html(simulacion: Mapping[str, Any], pilotos: Sequence[Mapping[str, A
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>MODEC-CE · informe</title>
 <style>{_CSS}</style></head><body><main>
 <h1>MODEC-CE · costo y evidencia</h1>
+<p class="meta"><b>{html.escape(AUTOR)}</b> · versión {html.escape(__version__)} · licencia {html.escape(LICENCIA)} ·
+<a href="{REPO}">código fuente</a> · <a href="{REPO}/tree/main/evidencia">bitácoras de evidencia</a> ·
+<a href="{REPO}/blob/main/SECURITY.md">límites declarados</a><br>
+Informe generado por el propio programa a partir de los datos del repositorio. Las cifras de simulación son
+estimaciones fuera de línea; las de los pilotos provienen del uso informado por el proveedor.</p>
 <p>Misma carga multiagente MODEC ({simulacion['carga']['pasos']} pasos, orquestador + {len(simulacion['carga']['agentes'])} agentes).
 Las disposiciones comparten exactamente el mismo contenido: {'verificado' if simulacion['contenido_identico_entre_disposiciones'] else 'NO verificado'}.</p>
 <div class="kpis">

@@ -72,13 +72,17 @@ def medir_compresion(cfg: ConfigCarga, instrumento: str = "auto") -> dict[str, A
     comprimido = texto_historial(entradas, comprimir=True)
     requeridas = anclas_de(completo)
     preservadas = [a for a in anclas_de(comprimido) if a in set(requeridas)]
-    original = None
+    # No se importa directamente sobre `original`: el alias de importación hacía que el nombre
+    # quedara tipado como la función y el camino de réplica integrada pareciera inalcanzable.
+    original: Any = None
     if instrumento in ("auto", "modec_core"):
         try:
-            from modec_core.compression_metrics import measure_compression_and_anchor_preservation as original
+            from modec_core.compression_metrics import measure_compression_and_anchor_preservation as _original
         except ImportError:
             if instrumento == "modec_core":
                 raise
+        else:
+            original = _original
     if original is None:
         return {**_medicion_c1_integrada(completo, comprimido, requeridas, preservadas),
                 "instrumento": "modec_ce.simulacion (réplica integrada de C.1)"}
@@ -151,8 +155,10 @@ def ejecutar(cfg: ConfigCarga | None = None, *, modelo: str = "deepseek-flash",
             "tasa_acierto": round(acierto / entrada, 4) if entrada else None,
             "tokens_salida_supuestos": salida,
             "costo_usd": {f: _redondear(t.costo(acierto, fallo, salida)) for f, t in tarifas.items()},
+            # strict=True: un resultado por petición. Si dejaran de corresponder, es mejor que falle
+            # que publicar un informe en el que la fila no es de la petición que dice.
             "por_peticion": [asdict(r) | {"paso": p.paso, "agente": p.agente}
-                             for r, p in zip(resultados, peticiones)],
+                             for r, p in zip(resultados, peticiones, strict=True)],
         }
 
     def ahorro(base: str, objetivo: str, franja: str) -> float:

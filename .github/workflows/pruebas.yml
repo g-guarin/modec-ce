@@ -15,6 +15,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  calidad:
+    # Lint y tipado: reglas que encuentran defectos, no que reformatean (ver pyproject.toml).
+    # Falla el trabajo a propósito: un control que no puede fallar no comprueba nada.
+    name: Lint y tipado
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar ruff y mypy
+        # Versiones fijas: las mismas con las que se verificó el árbol limpio. Sin fijarlas, una
+        # versión nueva del linter pone el CI en rojo sin que haya cambiado el código.
+        run: python -m pip install "ruff==0.16.9" "mypy==2.3.1"
+      - name: Lint (ruff)
+        run: ruff check --no-cache .
+      - name: Tipado (mypy)
+        run: mypy
+
   suite:
     # Clon público: sin pesd-nucleo (cadena mínima integrada) y sin torch (la prueba local se omite).
     name: ${{ matrix.os }} · Python ${{ matrix.python }}

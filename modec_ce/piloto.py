@@ -108,9 +108,10 @@ def planificar(brazos: Sequence[str], cfg: ConfigCarga = CONFIG_PILOTO, corridas
     plan: list[LlamadaPlanificada] = []
     for c, nonce in enumerate(nonces):
         orden = list(brazos) if c % 2 == 0 else list(reversed(brazos))
-        por_brazo = {b: generar_peticiones(cfg, b, comprimir_historial=False,
-                                           volatil=lambda i, n=nonce: (f"REQ-{i:04d}-{n}", f"orden {i}"))
-                     for b in orden}
+        def volatil(i: int, n: str = nonce) -> tuple[str, str]:   # noqa: B008 — `n` captura el nonce de la corrida
+            return f"REQ-{i:04d}-{n}", f"orden {i}"
+
+        por_brazo = {b: generar_peticiones(cfg, b, comprimir_historial=False, volatil=volatil) for b in orden}
         n = len(next(iter(por_brazo.values())))
         for i in range(n):
             for b in orden:

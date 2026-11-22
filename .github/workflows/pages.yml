@@ -1,7 +1,7 @@
 name: Informe en GitHub Pages
 
-# Manual a propósito: requiere activar Pages (Settings → Pages → Source: GitHub Actions) y
-# publica solo la simulación, no los pilotos.
+# Manual a propósito: requiere activar Pages (Settings → Pages → Source: GitHub Actions).
+# Publica la simulación, la sensibilidad y las bitácoras de piloto versionadas en evidencia/.
 on:
   workflow_dispatch:
 

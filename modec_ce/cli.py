@@ -28,6 +28,7 @@ from .proveedores import PROVEEDORES
 
 RAIZ = Path(__file__).resolve().parents[1]
 RESULTADOS = RAIZ / "resultados"
+EVIDENCIA = RAIZ / "evidencia"      # bitácoras publicadas en el repositorio
 
 
 def _leer(ruta: Path):
@@ -117,12 +118,30 @@ def cmd_verificar(args) -> int:
     return 0 if resultado["integra"] else 1
 
 
+def _recoger_pilotos() -> list[dict]:
+    """Pilotos para el informe: primero las bitácoras publicadas en `evidencia/`, luego las locales
+    de `resultados/`. Sin esto el informe que se publica en Pages decía «Sin pilotos ejecutados»
+    aunque el repositorio traiga una bitácora verificable: la página contradecía al propio repo.
+    Cada resumen lleva `_carpeta` (ruta relativa) y `_publicada` para que el informe pueda citarla."""
+    pilotos, vistas = [], set()
+    for carpeta, publicada in ((EVIDENCIA, True), (RESULTADOS, False)):
+        for p in sorted(carpeta.glob("piloto_*")):
+            if p.name in vistas:
+                continue
+            r = _leer(p / "resumen.json")
+            if r is None:
+                continue
+            vistas.add(p.name)
+            pilotos.append({**r, "_carpeta": p.relative_to(RAIZ).as_posix(), "_publicada": publicada})
+    return pilotos
+
+
 def cmd_informe(_args) -> int:
     sim = _leer(RESULTADOS / "simulacion.json")
     if sim is None:
         sim = simulacion.ejecutar()
         _escribir("simulacion.json", sim)
-    pilotos = [r for r in (_leer(p / "resumen.json") for p in sorted(RESULTADOS.glob("piloto_*"))) if r]
+    pilotos = _recoger_pilotos()
     destino = RESULTADOS / "informe.html"
     destino.write_text(generar_html(sim, pilotos, _leer(RESULTADOS / "sensibilidad.json")), encoding="utf-8")
     print(f"informe: {destino}")

@@ -12,7 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import modec_ce  # noqa: E402
-from modec_ce import nucleo, procedencia, simulacion, tokens  # noqa: E402
+from modec_ce import informe, nucleo, procedencia, simulacion, tokens  # noqa: E402
 from modec_ce.cache import ModeloCachePrefijos  # noqa: E402
 from modec_ce.carga import DISPOSICIONES, ConfigCarga, generar_peticiones, supertoken  # noqa: E402
 from modec_ce.costo import cargar_tarifa  # noqa: E402
@@ -193,7 +193,6 @@ class PilotoTests(unittest.TestCase):
     def test_el_sello_declara_fecha_version_y_commit(self):
         """Sin fecha ni versión dentro del payload, un tercero no puede fechar la bitácora
         ni atarla a una versión publicada del código."""
-        import re
         with tempfile.TemporaryDirectory() as tmp:
             res = self._ejecutar(tmp)
             registros = [json.loads(x) for x in
@@ -378,6 +377,31 @@ class CadenaMinimaTests(unittest.TestCase):
         self.assertTrue(any("SIN CLAVE" in x for x in limites), limites)
 
 
+class CitacionTests(unittest.TestCase):
+    RUTA = Path(__file__).resolve().parents[1] / "CITATION.cff"
+
+    def test_la_version_citada_no_se_desfasa_del_codigo(self):
+        """Un archivo de citación con una versión vieja cita algo que no es lo que hay."""
+        if not self.RUTA.exists():
+            self.skipTest("sin CITATION.cff")
+        texto = self.RUTA.read_text(encoding="utf-8")
+        version = next((x.split(":", 1)[1].strip() for x in texto.splitlines()
+                        if x.startswith("version:")), None)
+        self.assertEqual(version, modec_ce.__version__)
+        for campo in ("cff-version:", "title:", "authors:", "license:", "repository-code:"):
+            self.assertIn(campo, texto)
+
+    def test_no_publica_datos_de_contacto_personales(self):
+        """El repositorio enruta el contacto por el reporte privado de GitHub; el archivo de
+        citación no debe filtrar un correo personal."""
+        if not self.RUTA.exists():
+            self.skipTest("sin CITATION.cff")
+        texto = self.RUTA.read_text(encoding="utf-8")
+        self.assertNotIn("@gmail", texto)
+        self.assertFalse([x for x in texto.splitlines()
+                          if x.strip().startswith("email:") and not x.strip().startswith("#")])
+
+
 class ProcedenciaTests(unittest.TestCase):
     def test_sello_corrida_declara_fecha_version_y_estado_del_arbol(self):
         s = procedencia.sello_corrida()
@@ -548,6 +572,29 @@ class EvidenciaPublicadaTests(unittest.TestCase):
             self.assertTrue(any("SIN FECHA" in x for x in informe["limites"]), informe["limites"])
         if informe["commit_declarado"] is None:
             self.assertTrue(any("SIN COMMIT" in x for x in informe["limites"]), informe["limites"])
+
+    def test_el_informe_publicado_incluye_la_bitacora_del_repositorio(self):
+        """La página que se publica decía «Sin pilotos ejecutados» aunque el repo trae una bitácora
+        verificable: contradecía al propio repositorio. El informe debe citarla, con su ruta."""
+        if not self.CARPETA.exists():
+            self.skipTest("sin bitácora publicada")
+        from modec_ce import cli
+        pilotos = cli._recoger_pilotos()
+        publicadas = [p for p in pilotos if p.get("_publicada")]
+        self.assertTrue(publicadas, "ninguna bitácora de evidencia/ llegó al informe")
+        self.assertTrue(any(p["_carpeta"].startswith("evidencia/") for p in publicadas))
+
+        pagina = informe.generar_html(simulacion.ejecutar(), pilotos)
+        self.assertNotIn("Sin pilotos ejecutados", pagina)
+        self.assertIn(publicadas[0]["_carpeta"], pagina)
+        self.assertIn("verificar_independiente.py", pagina)
+        for dato in (informe.AUTOR, informe.LICENCIA, modec_ce.__version__, informe.REPO):
+            self.assertIn(dato, pagina)
+
+    def test_sin_bitacoras_el_informe_no_afirma_que_no_hubo_pilotos(self):
+        pagina = informe.generar_html(simulacion.ejecutar(), [])
+        self.assertNotIn("Sin pilotos ejecutados", pagina)
+        self.assertIn("no significa que no se hayan ejecutado pilotos", pagina)
 
     def test_bitacora_publicada_integra(self):
         if not self.CARPETA.exists():

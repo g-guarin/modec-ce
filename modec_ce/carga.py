@@ -20,7 +20,7 @@ import hashlib
 import json
 import random
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from typing import Callable, Iterable, Sequence
 
 CLASES = ("FUNDACION", "CONTEXTO", "HISTORIAL", "ROL", "TAREA", "VOLATIL")

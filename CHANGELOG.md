@@ -28,6 +28,33 @@ Cierra tres huecos de la 0.1.0 señalados en una auditoría del repositorio púb
   fecha verificable por un tercero requiere un ancla externa (sello de tiempo RFC 3161 sobre el
   digest del último registro).
 
+### El informe publicado ya no se contradice con el repositorio
+
+- `modec_ce informe` toma también las bitácoras versionadas en `evidencia/`, no solo las locales
+  de `resultados/`. La página de GitHub Pages decía «Sin pilotos ejecutados» aunque el repositorio
+  trae una bitácora verificable; ahora cita cada piloto con la ruta de su evidencia y la orden
+  exacta para comprobarlo. Cuando no hay ninguna bitácora a la vista lo dice sin afirmar que no se
+  ejecutaron pilotos, y enlaza a `evidencia/`.
+- Cabecera del informe con autor, versión, licencia y enlaces al código, a las bitácoras y a los
+  límites declarados: antes la página no permitía saber de quién era ni bajo qué licencia.
+
+### Citación, lint y tipado
+
+- `CITATION.cff`, con una prueba que falla si su versión se desfasa de `modec_ce.__version__` y
+  otra que impide que se filtre un correo personal (el contacto va por el reporte privado de
+  GitHub). Sin DOI hasta que exista el archivo en Zenodo; sin `date-released` hasta publicar 0.2.0.
+- Trabajo `calidad` en el CI con ruff y mypy fijados a versión. Se eligieron reglas que encuentran
+  defectos (`E`, `F`, `B`) y no las que reformatean; `line-length` recoge el ancho ya usado.
+- Al habilitarlos salieron cuatro cosas de fondo, arregladas sin silenciar la regla:
+  `uso_evaluable` no comprobaba `usage is None` antes de indexarlo; `nucleo.PESD` quedaba tipado
+  como `None`, lo que hacía inalcanzable todo el camino con núcleo propietario disponible;
+  `medir_compresion` importaba sobre el propio nombre `original`, de modo que el camino de réplica
+  integrada parecía inalcanzable; y en `servidor_local` el `zip` de comparación de prefijos ahora
+  declara `strict=False` (se detiene en el más corto, a propósito) mientras el de `simulacion`
+  declara `strict=True`, para que falle antes que publicar una fila atribuida a otra petición.
+
+Suite de 38 a 50 pruebas.
+
 ## 0.1.0 — 2026-11-21
 
 Primera versión publicable.

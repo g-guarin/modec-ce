@@ -30,7 +30,10 @@ def _rutas_candidatas() -> list[str]:
     return rutas
 
 
-PESD = None
+# `Any` a propósito: el núcleo propietario es opcional y no está en el clon público, así que su
+# tipo no se puede comprobar aquí. Anotarlo como Any evita que el verificador de tipos trate
+# `PESD` como None y declare inalcanzable todo el camino con núcleo disponible.
+PESD: Any = None
 if os.environ.get("MODEC_CE_SIN_PESD") != "1":
     for _r in _rutas_candidatas():
         if Path(_r).exists() and _r not in sys.path:
@@ -38,7 +41,8 @@ if os.environ.get("MODEC_CE_SIN_PESD") != "1":
             break
     try:
         import pesd_nucleo as PESD  # type: ignore[no-redef]
-        from pesd_nucleo.p1_sellado import RegistroSellado as _RegistroPESD
+        # Sonda de disponibilidad: si este submódulo falta, el except deja PESD en None.
+        from pesd_nucleo.p1_sellado import RegistroSellado as _RegistroPESD  # noqa: F401
         from pesd_nucleo.p2_centinela import Registro as _RegistroP2, registro as _registro_p2
     except ImportError:
         PESD = None
