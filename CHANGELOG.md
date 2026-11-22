@@ -55,6 +55,24 @@ Cierra tres huecos de la 0.1.0 señalados en una auditoría del repositorio púb
 
 Suite de 38 a 50 pruebas.
 
+### Segundo piloto real con DeepSeek, ya con procedencia sellada
+
+- Publicada `evidencia/piloto_deepseek_20261122_135846_5c1d7c/`, con el nombre de carpeta que
+  produjo el programa, sin renombrar. 48 llamadas, todas HTTP 200, todos los campos de uso
+  PRESENTE, cadena íntegra, ahorro 65,28 % / 65,39 % / 65,31 %.
+- Es la primera bitácora que declara dentro del sello `fecha_utc` (2026-11-22T18:58:46Z),
+  `version_modec_ce` 0.2.0, `commit` 32ad580 y `arbol_limpio`. Verificada en un equipo distinto
+  del que la produjo: el verificador ya no añade los límites SIN FECHA ni SIN COMMIT, que sí
+  sigue añadiendo sobre la bitácora del 2026-11-21.
+- Reproducibilidad: con otro código y otros valores aleatorios, el acierto de caché (39,0 % y
+  82,5 %) y el costo del brazo base (USD 0,0347) coinciden con los del 2026-11-21.
+- **Corregida la afirmación sobre latencia.** El README decía «sin mejora: MODEC-CE tardó un 3 %
+  más». Con las 6 corridas de los dos pilotos, MODEC-CE fue más rápido en 3 y más lento en 3
+  (de −7,7 % a +3,1 %), así que lo que sostienen los datos es que **no hay efecto medible en
+  latencia en ningún sentido**, no que la empeore. El beneficio sigue siendo de costo.
+- Corregida la línea de cabecera del README, que describía la demo como «no incluye el piloto
+  real» cuando desde este mismo ciclo sí lo incluye.
+
 ## 0.1.0 — 2026-11-21
 
 Primera versión publicable.

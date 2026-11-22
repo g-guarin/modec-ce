@@ -1,0 +1,162 @@
+{
+  "brazos": {
+    "ingenua_rol": {
+      "llamadas_medidas": 24,
+      "tokens_acierto": 69120,
+      "tokens_escritura": 0,
+      "tokens_fallo": 108262,
+      "tasa_acierto": 0.3897,
+      "costos_usd": {
+        "peak": "0.034736520",
+        "offpeak": "0.017368260"
+      },
+      "latencia_mediana_ms": 1693.9,
+      "latencia_total_ms": 41734.3,
+      "prefill_total_ms": null
+    },
+    "modec": {
+      "llamadas_medidas": 24,
+      "tokens_acierto": 146304,
+      "tokens_escritura": 0,
+      "tokens_fallo": 31078,
+      "tasa_acierto": 0.8248,
+      "costos_usd": {
+        "peak": "0.012044424",
+        "offpeak": "0.006022212"
+      },
+      "latencia_mediana_ms": 1781.05,
+      "latencia_total_ms": 41883.5,
+      "prefill_total_ms": null
+    }
+  },
+  "corridas": {
+    "1": {
+      "brazos": {
+        "ingenua_rol": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 23040,
+          "tokens_escritura": 0,
+          "tokens_fallo": 36114,
+          "tasa_acierto": 0.3895,
+          "costos_usd": {
+            "peak": "0.011586840",
+            "offpeak": "0.005793420"
+          },
+          "latencia_mediana_ms": 1744.8,
+          "latencia_total_ms": 13596.1,
+          "prefill_total_ms": null
+        },
+        "modec": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 48768,
+          "tokens_escritura": 0,
+          "tokens_fallo": 10386,
+          "tasa_acierto": 0.8244,
+          "costos_usd": {
+            "peak": "0.004022808",
+            "offpeak": "0.002011404"
+          },
+          "latencia_mediana_ms": 1624.1,
+          "latencia_total_ms": 13201.5,
+          "prefill_total_ms": null
+        }
+      },
+      "ahorro_relativo": 0.6528,
+      "reduccion_latencia": 0.029
+    },
+    "2": {
+      "brazos": {
+        "ingenua_rol": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 23040,
+          "tokens_escritura": 0,
+          "tokens_fallo": 36050,
+          "tasa_acierto": 0.3899,
+          "costos_usd": {
+            "peak": "0.011567640",
+            "offpeak": "0.005783820"
+          },
+          "latencia_mediana_ms": 1732.4,
+          "latencia_total_ms": 15114.7,
+          "prefill_total_ms": null
+        },
+        "modec": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 48768,
+          "tokens_escritura": 0,
+          "tokens_fallo": 10322,
+          "tasa_acierto": 0.8253,
+          "costos_usd": {
+            "peak": "0.004003608",
+            "offpeak": "0.002001804"
+          },
+          "latencia_mediana_ms": 1887.95,
+          "latencia_total_ms": 14652.8,
+          "prefill_total_ms": null
+        }
+      },
+      "ahorro_relativo": 0.6539,
+      "reduccion_latencia": 0.0306
+    },
+    "3": {
+      "brazos": {
+        "ingenua_rol": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 23040,
+          "tokens_escritura": 0,
+          "tokens_fallo": 36098,
+          "tasa_acierto": 0.3896,
+          "costos_usd": {
+            "peak": "0.011582040",
+            "offpeak": "0.005791020"
+          },
+          "latencia_mediana_ms": 1548.45,
+          "latencia_total_ms": 13023.5,
+          "prefill_total_ms": null
+        },
+        "modec": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 48768,
+          "tokens_escritura": 0,
+          "tokens_fallo": 10370,
+          "tasa_acierto": 0.8246,
+          "costos_usd": {
+            "peak": "0.004018008",
+            "offpeak": "0.002009004"
+          },
+          "latencia_mediana_ms": 1776.9,
+          "latencia_total_ms": 14029.2,
+          "prefill_total_ms": null
+        }
+      },
+      "ahorro_relativo": 0.6531,
+      "reduccion_latencia": -0.0772
+    }
+  },
+  "ahorro_relativo": {
+    "media": 0.6533,
+    "min": 0.6528,
+    "max": 0.6539,
+    "corridas_validas": 3
+  },
+  "criterio_30pct_todas": true,
+  "procedencia": "MEDIDO (usage del proveedor) + costo DERIVADO de tarifa DECLARADA",
+  "proveedor": "deepseek",
+  "modelo": "deepseek-flash",
+  "detenido": null,
+  "fecha_utc_cierre": "2026-11-22T19:01:26Z",
+  "verificacion": {
+    "motor_evidencia": "modec-ce-cadena-minima-v1",
+    "autenticidad": "NINGUNA (sin clave: solo integridad)",
+    "registros": 50,
+    "integra": true,
+    "estado_minimo": null,
+    "motivos": [],
+    "limites": [
+      "SIN ANCLA: el truncamiento de la cola y la reescritura total no son detectables",
+      "CADENA MÍNIMA: integridad genérica, sin el motor de evidencia opcional del núcleo propietario",
+      "SIN CLAVE: solo integridad. La clave es la declaración de qué firma se espera; sin entregarla, una cadena a la que se le quitaron las firmas verifica igual"
+    ],
+    "nucleo_pesd": null
+  }
+}

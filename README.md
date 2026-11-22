@@ -4,7 +4,7 @@
 ![Licencia](https://img.shields.io/badge/licencia-Apache%202.0-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 
-**English summary:** [README.en.md](README.en.md) · **Demo (informe HTML estático con la simulación; no incluye el piloto real):** https://g-guarin.github.io/modec-ce/
+**English summary:** [README.en.md](README.en.md) · **Demo (informe HTML estático generado por el propio programa, con la simulación y los pilotos publicados):** https://g-guarin.github.io/modec-ce/
 
 MODEC-CE mide cuánto se ahorra en una orquestación multiagente sobre LLM al ordenar los prompts para aprovechar el caché de prefijos del proveedor. Sella cada medición en una cadena de evidencia que un tercero puede verificar sin instalar nada, siempre que esté sellada con la cadena mínima integrada en este repositorio.
 
@@ -36,28 +36,34 @@ Carga sintética: 3 pasos, orquestador más 4 agentes y un corpus generado con e
 
 Una prueba comprueba que cuatro cifras de ahorro, la reducción C.1 y el conteo de anclas de esta tabla coinciden con el código. El rango de sensibilidad y las cifras de los pilotos no se comprueban automáticamente.
 
-### Piloto real con DeepSeek (2026-11-21)
+### Pilotos reales con DeepSeek (2026-11-21 y 2026-11-22)
 
-Carga sintética más pequeña que la de la simulación: orquestador más 3 agentes, 2 pasos y un corpus generado con `tokens_corpus` = 3 000 (≈ 5 100 tokens según el estimador del proyecto; DeepSeek facturó entre 5 846 y 8 939 tokens de entrada por llamada). Es la **segunda** ejecución real con DeepSeek de ese día: la primera, sellada con otro motor de evidencia que no se publica, dio un resultado equivalente (65,4 % / 65,3 % / 65,4 %). Hubo 3 corridas con 16 llamadas cada una (48 en total), con el orden de los brazos alternado. Todas las respuestas fueron HTTP 200 y todos los campos de uso fueron PRESENTE.
+Carga sintética más pequeña que la de la simulación: orquestador más 3 agentes, 2 pasos y un corpus generado con `tokens_corpus` = 3 000 (≈ 5 100 tokens según el estimador del proyecto; DeepSeek facturó entre 5 842 y 8 939 tokens de entrada por llamada). Cada piloto son 3 corridas de 16 llamadas (48 en total), con un valor aleatorio distinto por corrida y el orden de los brazos alternado. En ambos, todas las respuestas fueron HTTP 200 y todos los campos de uso fueron PRESENTE.
+
+Hay **dos bitácoras publicadas**, de días y versiones distintas. El 2026-11-21 hubo además una primera ejecución sellada con otro motor de evidencia que no se publica, con resultado equivalente (65,4 % / 65,3 % / 65,4 %).
 
 | Medida | `ingenua_rol` | `modec` |
 |---|---|---|
 | Tokens de entrada servidos desde caché (informado por DeepSeek) | 39,0 % | 82,5 % |
-| Costo de entrada y salida de las 3 corridas (tarifa normal) | USD 0,0347 | USD 0,0121 |
-| **Ahorro de MODEC-CE por corrida** | — | **65,3 % / 65,3 % / 65,3 %** |
-| Latencia total de las 3 corridas | 37,1 s | 38,3 s |
+| Costo de entrada y salida de las 3 corridas (tarifa pico) | USD 0,0347 | USD 0,0120 |
+| **Ahorro de MODEC-CE por corrida** | — | **65,3 % / 65,4 % / 65,3 %** |
+| Latencia total de las 3 corridas | 41,7 s | 41,9 s |
+
+*Cifras del piloto del 2026-11-22 (versión 0.2.0).*
+
+**Reproducibilidad.** El piloto del 2026-11-21 (versión 0.1.0, otro código y otros valores aleatorios) dio 39,0 % y 82,5 % de acierto de caché, USD 0,0347 y USD 0,0121 de costo, y 65,3 % de ahorro en las tres corridas. Las dos ejecuciones coinciden hasta la cuarta cifra significativa en el costo del brazo base. No es un número que salió una vez.
 
 - **Procedencia:** los tokens son MEDIDOS a partir del campo `usage` de DeepSeek. El costo es DERIVADO de la tarifa declarada en `datos/precios.json` y no es la factura; conviene contrastarlo con el panel de uso del proveedor.
-- **Latencia:** sin mejora. MODEC-CE tardó un 3 % más en total (en 2 de 3 corridas fue más lento, hasta un 8 %). Con salidas de 64 tokens y llamadas por internet no se puede atribuir esa diferencia a nada; no se midió el ruido de la red. El beneficio medido es de costo, no de velocidad.
-- **Evidencia:** la bitácora sellada con la cadena mínima integrada está en `evidencia/piloto_deepseek_20261121/` (50 registros: el plan, 48 llamadas y el resumen). No contiene prompts, respuestas ni claves, solo huellas, conteos, latencias y costos.
+- **Latencia: no hay efecto medible, en ningún sentido.** Sobre las 6 corridas de los dos pilotos, MODEC-CE fue más rápido en 3 y más lento en 3 (de −7,7 % a +3,1 % por corrida), y en total quedó un 3 % más lento el primer día y un 0,5 % el segundo. Con salidas de 64 tokens y llamadas por internet, esa dispersión es ruido de red: no se midió por separado, así que no se atribuye a la disposición del prompt. **El beneficio medido es de costo, no de velocidad**, y tampoco hay evidencia de que cueste velocidad.
+- **Evidencia:** las bitácoras selladas con la cadena mínima integrada están en `evidencia/piloto_deepseek_20261121/` y `evidencia/piloto_deepseek_20261122_135846_5c1d7c/` (50 registros cada una: el plan, 48 llamadas y el resumen). No contienen prompts, respuestas ni claves, solo huellas, conteos, latencias y costos. Se publican con el nombre de carpeta que produjo el programa, sin renombrar.
 - **Verificación independiente**, sin instalar nada:
   ```bash
-  python herramientas/verificar_independiente.py evidencia/piloto_deepseek_20261121
+  python herramientas/verificar_independiente.py evidencia/piloto_deepseek_20261122_135846_5c1d7c
   # con clave, para comprobar también autoría (modo estricto):
   python herramientas/verificar_independiente.py evidencia/<carpeta> --hmac-hex <clave_hex>
   ```
   Recalcula el digest SHA-256 de cada registro, cada enlace `hash_previo` y el ahorro de cada corrida a partir de los costos registrados en las llamadas. No recalcula el costo a partir de tokens y tarifa.
-- **Límites:** la bitácora se selló sin clave HMAC, así que se comprueba su integridad pero no su autoría. No tiene ancla externa. **Esta bitácora, producida con 0.1.0, no declara dentro del sello ni la fecha ni la versión del código**: la fecha solo aparece en el nombre de la carpeta, que está fuera de la cadena. El verificador lo reporta como límite. Desde 0.2.0 esos campos viajan dentro del payload (ver CHANGELOG). Los adaptadores de Anthropic, OpenAI y OpenRouter solo se han probado con respuestas simuladas, no con llamadas reales; falta repetir el piloto con Anthropic y OpenAI.
+- **Límites:** las dos bitácoras se sellaron sin clave HMAC, así que se comprueba su integridad pero no su autoría, y ninguna tiene ancla externa. Se diferencian en un punto: **la del 2026-11-21, producida con 0.1.0, no declara dentro del sello ni la fecha ni la versión del código** —la fecha solo aparece en el nombre de su carpeta, fuera de la cadena— mientras que la del 2026-11-22 sella `fecha_utc`, `version_modec_ce`, `commit` y `arbol_limpio`. El verificador declara esa diferencia por sí mismo: sobre la primera añade los límites `SIN FECHA EN EL SELLO` y `SIN COMMIT EN EL SELLO`, y sobre la segunda no. La fecha sellada sigue siendo la **declarada** por el equipo que ejecutó; convertirla en fecha verificable por un tercero requiere un sello de tiempo RFC 3161 sobre el digest del último registro, que todavía no se ha aplicado. Los adaptadores de Anthropic, OpenAI y OpenRouter solo se han probado con respuestas simuladas, no con llamadas reales; falta repetir el piloto con Anthropic y OpenAI.
 
 ## Inicio rápido (sin claves ni red)
 
