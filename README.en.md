@@ -6,7 +6,11 @@
 
 > English summary. The full documentation is in Spanish: [README.md](README.md).
 
-**MODEC-CE measures how much you save in a multi-agent LLM workload when prompts are laid out to hit the provider's prefix cache, and it seals every measurement in an evidence chain that a third party can verify.**
+**MODEC-CE does not offer a new way to cut LLM costs. It offers a way to prove how much they were cut, so that someone else can check it.**
+
+It measures the saving from laying prompts out to hit the provider's prefix cache in a multi-agent workload, and seals every measurement in an evidence chain verifiable with no dependencies. Every figure is marked estimated, measured or derived, and anything the provider does not report is recorded as ABSENT rather than counted as zero.
+
+It is aimed at whoever **has to defend a cost figure to someone else** — whoever charges for it, buys it, audits it or publishes it — not only at whoever wants a smaller bill. The reason is the table below: the saving depends so much on the shape of the workload that somebody else's percentage is not a basis for a decision.
 
 ## What it does
 

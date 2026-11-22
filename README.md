@@ -6,9 +6,13 @@
 
 **English summary:** [README.en.md](README.en.md) · **Demo (informe HTML estático generado por el propio programa, con la simulación y los pilotos publicados):** https://g-guarin.github.io/modec-ce/
 
-MODEC-CE mide cuánto se ahorra en una orquestación multiagente sobre LLM al ordenar los prompts para aprovechar el caché de prefijos del proveedor. Sella cada medición en una cadena de evidencia que un tercero puede verificar sin instalar nada, siempre que esté sellada con la cadena mínima integrada en este repositorio.
+**MODEC-CE no propone una forma nueva de abaratar el uso de modelos de lenguaje. Propone una forma de demostrar cuánto se abarató, que un tercero pueda comprobar.**
 
-**En palabras simples:** cuando dos llamadas a un modelo empiezan con exactamente el mismo texto, el proveedor reutiliza ese inicio (el *caché de prefijos*) y cobra mucho menos por él. MODEC-CE ordena el prompt para que lo que más se repite quede primero y mide cuánto se ahorra de verdad.
+Mide el ahorro de disponer los prompts para aprovechar el caché de prefijos del proveedor en una orquestación multiagente, y sella cada medición en una cadena de evidencia verificable sin instalar nada. Cada cifra queda marcada como estimada, medida o derivada, y lo que el proveedor no informa se declara AUSENTE en lugar de contarse como cero.
+
+Está dirigido a quien **debe sostener una cifra de costo ante alguien más** —quien la cobra, quien la compra, quien la audita, quien la publica— y no solo a quien quiere una factura menor. La razón está en [la tabla de más abajo](#qué-resuelve-esto-que-la-documentación-del-proveedor-no-resuelve): el ahorro depende tanto de la forma de la carga que un porcentaje ajeno no sirve para decidir.
+
+**En palabras simples:** cuando dos llamadas a un modelo empiezan con exactamente el mismo texto, el proveedor reutiliza ese inicio (el *caché de prefijos*) y cobra mucho menos por él. Ponerlo primero es práctica recomendada por los propios proveedores y no es invención de este repositorio. Lo que aporta MODEC-CE es medirlo con rigor y **dejar la medición en pie para que otro la revise**.
 
 1. **Disposición consciente del caché.** Ordena los segmentos de cada prompt de lo más estable a lo más variable: `FUNDACION → CONTEXTO → HISTORIAL → ROL → TAREA → VOLATIL`. El contenido es el mismo y se comprueba con una huella SHA-256; solo cambia el orden. Los proveedores cobran la entrada que acierta en su caché a una fracción del precio (según `datos/precios.json`, leído el 2026-11-20: DeepSeek 2 %; Anthropic 10 %, más un recargo de 1,25 veces el precio normal al escribir en el caché; OpenAI 4.1 25 %).
 2. **Historial en Super-Tokens.** Cada salida anterior se sustituye por una referencia `artifact://sha256:…`, un fragmento de hasta 350 caracteres (truncado, no un resumen semántico) y la lista de sus anclas `[H-nnn]`, copiada de la salida completa. La métrica C.1 de MODEC mide cuánto se reduce el historial y si se conservan las anclas.
