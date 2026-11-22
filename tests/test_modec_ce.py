@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -400,6 +401,76 @@ class TablaSalidaTests(unittest.TestCase):
         self.assertEqual(ahorros, sorted(ahorros, reverse=True))
         self.assertGreater(ahorros[0], 0.6)
         self.assertLess(ahorros[-1], 0.2)
+
+
+class AnclaTemporalTests(unittest.TestCase):
+    """El ancla temporal es lo único que hace detectable una reescritura completa de la cadena.
+    Comprobar que el ancla es de ESTA cadena no necesita dependencias: el digest final, en bruto,
+    tiene que estar dentro de la solicitud y de la respuesta firmada. Comprobar la FIRMA sí las
+    necesita, y por eso se declara como no comprobada en vez de darse por hecha."""
+
+    RAIZ = Path(__file__).resolve().parents[1]
+
+    def _verificador(self):
+        import importlib.util
+        ruta = self.RAIZ / "herramientas" / "verificar_independiente.py"
+        spec = importlib.util.spec_from_file_location("verificar_independiente", ruta)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def _con_ancla(self):
+        return [c for c in sorted((self.RAIZ / "evidencia").glob("piloto_*"))
+                if (self.RAIZ / "sello" / c.name / "ancla.tsr").is_file()]
+
+    def test_el_ancla_publicada_corresponde_a_su_cadena(self):
+        carpetas = self._con_ancla()
+        if not carpetas:
+            self.skipTest("ninguna bitácora tiene ancla publicada todavía")
+        v = self._verificador()
+        for carpeta in carpetas:
+            with self.subTest(bitacora=carpeta.name):
+                informe_ = v.verificar(carpeta)
+                self.assertEqual(informe_["ancla_externa"], "PRESENTE_Y_CORRESPONDE_A_ESTA_CADENA")
+                self.assertTrue(any("ANCLA PRESENTE" in x for x in informe_["limites"]))
+                # La firma NO se comprueba aquí, y eso debe quedar dicho.
+                self.assertTrue(any("FIRMA de la autoridad no se comprueba" in x
+                                    for x in informe_["limites"]))
+                self.assertFalse(any("SIN ANCLA EXTERNA" in x for x in informe_["limites"]))
+
+    def test_sin_ancla_lo_declara_como_limite(self):
+        v = self._verificador()
+        sin = [c for c in sorted((self.RAIZ / "evidencia").glob("piloto_*"))
+               if not (self.RAIZ / "sello" / c.name / "ancla.tsr").is_file()]
+        if not sin:
+            self.skipTest("todas las bitácoras tienen ancla")
+        informe_ = v.verificar(sin[0])
+        self.assertEqual(informe_["ancla_externa"], "AUSENTE")
+        self.assertTrue(any("SIN ANCLA EXTERNA" in x for x in informe_["limites"]))
+
+    def test_un_ancla_de_otra_cadena_se_detecta(self):
+        """Poner junto a una bitácora el ancla de otra no debe colar."""
+        carpetas = self._con_ancla()
+        if not carpetas:
+            self.skipTest("ninguna bitácora tiene ancla publicada todavía")
+        v = self._verificador()
+        origen = carpetas[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            raiz = Path(tmp)
+            (raiz / "evidencia" / origen.name).mkdir(parents=True)
+            (raiz / "sello" / origen.name).mkdir(parents=True)
+            # Una cadena distinta, con su propio digest final.
+            c = nucleo.CadenaMinima(None, "modec-ce")
+            r = c.sellar({"tipo": "LLAMADA", "corrida": 1, "brazo": "modec",
+                          "costos_usd": {"peak": "0.001"}}, None)
+            (raiz / "evidencia" / origen.name / "evidencia.jsonl").write_text(r.a_json() + "\n",
+                                                                             encoding="utf-8")
+            for nombre in ("ancla.tsq", "ancla.tsr"):
+                shutil.copy(self.RAIZ / "sello" / origen.name / nombre,
+                            raiz / "sello" / origen.name / nombre)
+            informe_ = v.verificar(raiz / "evidencia" / origen.name)
+            self.assertEqual(informe_["ancla_externa"], "NO_CORRESPONDE")
+            self.assertTrue(any("no es su ancla" in x for x in informe_["limites"]))
 
 
 class DigestFinalTests(unittest.TestCase):

@@ -44,6 +44,42 @@ def _canonico(obj) -> bytes:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
 
 
+def _estado_ancla(carpeta: Path, digest_final: str | None) -> dict:
+    """¿Hay un ancla temporal junto a esta bitácora, y corresponde a esta cadena?
+
+    Se busca en `sello/<misma carpeta>/`. Comprobar que el ancla es de ESTA cadena no necesita
+    dependencias: el digest final, en bruto, tiene que aparecer dentro de la solicitud y dentro de
+    la respuesta firmada.
+
+    Lo que esta herramienta NO hace es comprobar la firma de la autoridad, porque eso exige leer
+    ASN.1 y aquí no hay más que la biblioteca estándar. Se declara en vez de darse por hecho: un
+    ancla presente y no verificada no es un ancla verificada.
+    """
+    carpeta = carpeta.resolve()
+    sello = carpeta.parent.parent / "sello" / carpeta.name
+    tsq, tsr = sello / "ancla.tsq", sello / "ancla.tsr"
+    sin_ancla = {"estado": "AUSENTE",
+                 "limite": "SIN ANCLA EXTERNA: la reescritura total y el truncamiento de la cola no son detectables"}
+    if not (tsq.is_file() and tsr.is_file()):
+        return sin_ancla
+    if not digest_final:
+        return {"estado": "PRESENTE_SIN_CADENA_QUE_COMPARAR",
+                "limite": "ANCLA PRESENTE pero la cadena no tiene digest final con el que compararla"}
+    try:
+        crudo = bytes.fromhex(digest_final)
+    except ValueError:
+        return sin_ancla
+    if crudo not in tsq.read_bytes() or crudo not in tsr.read_bytes():
+        return {"estado": "NO_CORRESPONDE",
+                "limite": "ANCLA PRESENTE pero NO contiene el digest final de esta cadena: no es su ancla"}
+    return {
+        "estado": "PRESENTE_Y_CORRESPONDE_A_ESTA_CADENA",
+        "limite": ("ANCLA PRESENTE en " + sello.name + ": contiene el digest final de esta cadena, "
+                   "pero la FIRMA de la autoridad no se comprueba aquí. Compruébela con: "
+                   "openssl ts -verify -in ancla.tsr -queryfile ancla.tsq -CAfile cacert.pem -untrusted tsa.crt"),
+    }
+
+
 def verificar(carpeta: Path, clave: bytes | None = None, key_id: str = KEY_ID_POR_DEFECTO) -> dict:
     registros = [json.loads(linea) for linea in
                  (carpeta / "evidencia.jsonl").read_text(encoding="utf-8").splitlines() if linea.strip()]
@@ -101,7 +137,8 @@ def verificar(carpeta: Path, clave: bytes | None = None, key_id: str = KEY_ID_PO
                               f"distinto del resumen {datos['ahorro_relativo']}")
 
     plan = next((r.get("payload") or {} for r in registros if (r.get("payload") or {}).get("tipo") == "PLAN"), {})
-    limites = ["SIN ANCLA EXTERNA: la reescritura total y el truncamiento de la cola no son detectables"]
+    ancla = _estado_ancla(carpeta, anterior)
+    limites = [ancla["limite"]]
     limites.append("AUTENTICIDAD: HMAC verificado con la clave entregada" if clave is not None
                    else "SIN CLAVE HMAC: integridad, no autoría")
     if not plan.get("fecha_utc"):
@@ -112,6 +149,7 @@ def verificar(carpeta: Path, clave: bytes | None = None, key_id: str = KEY_ID_PO
     return {
         "registros": len(registros),
         "llamadas": llamadas,
+        "ancla_externa": ancla["estado"],
         "fecha_declarada_utc": plan.get("fecha_utc"),
         "version_declarada": plan.get("version_modec_ce"),
         "commit_declarado": plan.get("commit"),

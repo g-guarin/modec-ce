@@ -55,6 +55,23 @@ Cierra tres huecos de la 0.1.0 señalados en una auditoría del repositorio púb
 
 Suite de 38 a 50 pruebas.
 
+### Ancla temporal RFC 3161 sobre la bitácora del 2026-11-22
+
+- Publicada en `sello/piloto_deepseek_20261122_135846_5c1d7c/`: solicitud, respuesta firmada por
+  FreeTSA, los dos certificados de la autoridad y el registro completo de la operación. Instante
+  acreditado: 22 de noviembre de 2026, 22:17:24 GMT. Verificada en un equipo distinto del que la
+  produjo y con otra versión de OpenSSL: `Verification: OK`, estado `Granted`, y el valor sellado
+  es el digest final de esa cadena, exacto.
+- Con ella, reescribir la bitácora entera deja de ser indetectable, que era el límite más grande
+  que quedaba declarado.
+- `verificar_independiente.py` detecta el ancla y distingue tres casos: ausente, presente y
+  correspondiente a esa cadena, o presente y de otra cadena. La comprobación no necesita
+  dependencias: el digest final en bruto tiene que estar dentro de la solicitud y de la respuesta.
+  Lo que NO comprueba es la firma de la autoridad —exige ASN.1— y lo declara en su salida en vez
+  de darlo por hecho. Tres pruebas lo cubren, incluida la de colocar el ancla de otra cadena.
+- Los certificados de la autoridad se publican junto al sello: si FreeTSA dejara de estar
+  disponible, harían falta para verificar.
+
 ### La ficha de latencia dejaba de ser honesta al resumir
 
 - El informe titulaba la latencia con «reducción mínima por corrida», es decir, con el peor dato de
