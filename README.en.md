@@ -86,10 +86,20 @@ python herramientas/verificar_independiente.py evidencia/piloto_deepseek_2026112
 
 It recomputes the SHA-256 digest of every record, every chain link and each run's savings from the costs recorded in the individual calls. It does not recompute cost from tokens and tariff.
 
+**External time anchor.** The 2026-11-22 log carries an **RFC 3161 timestamp** over the digest of its last record, in [`sello/piloto_deepseek_20261122_135846_5c1d7c/`](sello/piloto_deepseek_20261122_135846_5c1d7c/), issued by FreeTSA on **22 November 2026 at 22:17:24 GMT**. It attests, to someone who has no reason to take the author's word, that the chain existed no later than that instant — which is what makes a full rewrite detectable. The authority's certificates are published alongside it, because they would be needed to check the seal if that authority ever went away.
+
+```bash
+cd sello/piloto_deepseek_20261122_135846_5c1d7c
+openssl ts -verify -in ancla.tsr -queryfile ancla.tsq -CAfile cacert.pem -untrusted tsa.crt
+```
+
+`verificar_independiente.py` checks on its own that the anchor **contains that chain's final digest** — that it is this chain's anchor and not another's — but it does **not** check the authority's signature, because that would require parsing ASN.1 and the tool has no dependencies. It says so in its output rather than letting you assume otherwise.
+
 **Limits, stated up front**
 - One provider so far. Anthropic and OpenAI pilots are pending, and the Anthropic, OpenAI and OpenRouter adapters have only been tested with simulated responses.
-- The log was sealed without an HMAC key: integrity is checkable, authorship is not.
-- No external anchor: truncating the end of the chain, or rewriting it whole without the HMAC key, would not be detectable.
+- Both logs were sealed without an HMAC key: integrity is checkable, authorship is not.
+- The 2026-11-21 log has **no external anchor and does not seal its own date or code version** — its date appears only in the folder name, outside the chain — so truncating or rewriting it whole would not be detectable. The verifier states that difference itself: it adds `SIN ANCLA EXTERNA`, `SIN FECHA EN EL SELLO` and `SIN COMMIT EN EL SELLO` to the first log and none of the three to the second.
+- The date inside the payload is the one **declared** by the machine that ran the pilot. What backs it to a third party is the anchor, not the declaration.
 - The simulation (59.0 % against a strong baseline) is an estimate under DeepSeek's documented cache rules (R1–R3; R4 is not modelled), not a measurement and not a bound: in the real pilot DeepSeek hit the cache more than the simulation predicted. Its workload differs from the pilot's (3 steps, orchestrator + 4 agents, `tokens_corpus` = 4000) and its cost includes 300 assumed output tokens per request, so the two figures are not directly comparable.
 
 ## Quick start (no keys, no network)

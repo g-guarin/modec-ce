@@ -55,6 +55,14 @@ Cierra tres huecos de la 0.1.0 señalados en una auditoría del repositorio púb
 
 Suite de 38 a 50 pruebas.
 
+### Documentación puesta al día con el ancla
+
+- `docs/caso-de-uso.md` enseñaba una salida del verificador con «SIN ANCLA EXTERNA» cuando esa
+  bitácora ya tenía ancla: el documento mostraba algo que el programa no produce. Corregido, y con
+  una prueba que compara el bloque de ejemplo, campo por campo, con lo que la herramienta imprime.
+- `README.en.md` no mencionaba el ancla. Ahora la describe, da el comando de verificación y declara
+  la diferencia entre las dos bitácoras, igual que el español.
+
 ### Ancla temporal RFC 3161 sobre la bitácora del 2026-11-22
 
 - Publicada en `sello/piloto_deepseek_20261122_135846_5c1d7c/`: solicitud, respuesta firmada por

@@ -72,23 +72,29 @@ python herramientas/verificar_independiente.py evidencia/piloto_deepseek_2026112
 
 Salida:
 
+<!-- SALIDA-VERIFICADOR -->
 ```json
 {
   "registros": 50,
   "llamadas": 48,
+  "ancla_externa": "PRESENTE_Y_CORRESPONDE_A_ESTA_CADENA",
   "fecha_declarada_utc": "2026-11-22T18:58:46Z",
   "version_declarada": "0.2.0",
   "commit_declarado": "32ad580f09912f32242e3a1510d1e8985b07df53",
   "arbol_limpio": true,
+  "autenticidad": "NO_EVALUADA (sin clave)",
   "ahorro_recalculado_por_corrida": {"1": 0.6528, "2": 0.6539, "3": 0.6531},
   "integra": true,
   "fallos": [],
   "limites": [
-    "SIN ANCLA EXTERNA: la reescritura total y el truncamiento de la cola no son detectables",
+    "ANCLA PRESENTE en piloto_deepseek_20261122_135846_5c1d7c: contiene el digest final de esta cadena, pero la FIRMA de la autoridad no se comprueba aquí. Compruébela con: openssl ts -verify -in ancla.tsr -queryfile ancla.tsq -CAfile cacert.pem -untrusted tsa.crt",
     "SIN CLAVE HMAC: integridad, no autoría"
   ]
 }
 ```
+<!-- /SALIDA-VERIFICADOR -->
+
+Una prueba comprueba que este bloque coincide con lo que la herramienta imprime hoy. Un documento que enseña una salida que el programa ya no produce es exactamente el defecto que este proyecto existe para no tener.
 
 Qué acaba de verificar, sin fiarse de nadie:
 
@@ -99,9 +105,13 @@ Qué acaba de verificar, sin fiarse de nadie:
 - **Que nada se retocó después.** Cambiar un solo número invalida su digest.
 - **Cuándo se midió y con qué código**, porque la fecha, la versión y el commit viajan dentro del
   sello, no en el nombre de una carpeta que cualquiera puede renombrar.
+- **Que esa cadena ya existía antes de una fecha que no pone el autor**, porque un sello de tiempo
+  RFC 3161 de una autoridad independiente lo acredita, y la herramienta comprueba que ese sello
+  corresponde a esta cadena y no a otra.
 
-Y, lo más importante para la confianza: **la herramienta declara lo que no puede comprobar**. Esos
-dos límites de la salida no son letra pequeña, son parte del resultado.
+Y, lo más importante para la confianza: **la herramienta declara lo que no puede comprobar**. Los
+límites de la salida no son letra pequeña, son parte del resultado. Fíjese en que sobre el ancla
+dice que no verifica la firma de la autoridad, en vez de callarlo.
 
 ## Lo que esto sigue sin probar
 
@@ -110,9 +120,13 @@ Conviene decirlo en la entrega, no esperar a que lo pregunten:
 - **Autoría.** Sin clave HMAC se comprueba integridad, no quién selló. Y el HMAC es simétrico: solo
   prueba autoría ante quien ya tiene la clave. Para autoría verificable por terceros hace falta
   firma asimétrica.
-- **Reescritura completa.** Quien controle la bitácora entera puede rehacerla y recalcular todas las
-  huellas. Lo que lo impide es un ancla externa: un sello de tiempo RFC 3161 sobre el digest del
-  último registro, que acredita que esa cadena existía antes de una fecha que no pone el autor.
+- **La firma del ancla, con esta herramienta.** El ancla temporal existe y está verificada (ver
+  `sello/`), y eso cierra la reescritura completa: quien rehiciera la bitácora ya no podría hacer
+  que cuadrara con un sello que no puede falsificar. Pero `verificar_independiente.py` solo
+  comprueba que el ancla corresponde a esta cadena; **validar la firma de la autoridad exige
+  `openssl ts -verify`**, porque leer ASN.1 traería dependencias. Está dicho en su salida.
+  Una bitácora sin ancla —como la del 2026-11-21— sigue siendo reescribible sin dejar rastro, y la
+  herramienta lo declara sobre ella.
 - **Que la carga medida se parezca a la del cliente.** Esto no lo resuelve ninguna criptografía, y
   es lo que más cambia el número. Ver abajo.
 

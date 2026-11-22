@@ -607,6 +607,30 @@ class CasoDeUsoTests(unittest.TestCase):
         # El documento debe señalar de qué bitácora salen las cifras, no solo citarlas.
         self.assertIn(self.BITACORA.parent.name, texto)
 
+    def test_la_salida_de_ejemplo_es_la_que_imprime_la_herramienta_hoy(self):
+        """El documento enseñaba una salida con «SIN ANCLA EXTERNA» cuando esa bitácora ya tenía
+        ancla. Enseñar una salida que el programa no produce es el defecto que este proyecto
+        existe para no tener."""
+        if not self.RUTA.exists() or not self.BITACORA.exists():
+            self.skipTest("sin caso de uso o sin bitácora")
+        texto = self.RUTA.read_text(encoding="utf-8")
+        bloque = texto.split("<!-- SALIDA-VERIFICADOR -->")[1].split("<!-- /SALIDA-VERIFICADOR -->")[0]
+        mostrado = json.loads(bloque.split("```json")[1].split("```")[0])
+
+        import importlib.util
+        ruta = self.RAIZ / "herramientas" / "verificar_independiente.py"
+        spec = importlib.util.spec_from_file_location("verificar_independiente", ruta)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        real = mod.verificar(self.BITACORA.parent)
+
+        for campo in ("registros", "llamadas", "ancla_externa", "fecha_declarada_utc",
+                      "version_declarada", "commit_declarado", "arbol_limpio", "autenticidad",
+                      "integra", "fallos", "limites"):
+            self.assertEqual(mostrado[campo], real[campo], f"el campo {campo} del ejemplo está desfasado")
+
+    RAIZ = Path(__file__).resolve().parents[1]
+
     def test_declara_que_el_escenario_es_ilustrativo(self):
         """Un informe de ejemplo que no se declara como tal es un registro fabricado."""
         if not self.RUTA.exists():
