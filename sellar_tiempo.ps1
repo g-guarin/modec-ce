@@ -79,13 +79,12 @@ if ($fallos -gt 0) { Nota 'Faltan herramientas. Se detiene.'; exit 1 }
 $jsonl = Join-Path $PSScriptRoot (Join-Path $Bitacora 'evidencia.jsonl')
 if (-not (Test-Path -LiteralPath $jsonl)) { Falla "no existe $jsonl"; exit 1 }
 
-$lector = @'
-import json, sys
-lineas = [l for l in open(sys.argv[1], encoding="utf-8").read().splitlines() if l.strip()]
-ultimo = json.loads(lineas[-1])
-print(len(lineas), ultimo["secuencia"], (ultimo.get("payload") or {}).get("tipo"), ultimo["digest"])
-'@
-$salida = (& $py -I -c $lector $jsonl 2>&1) -join ' '
+# Se invoca un archivo, no `python -c "..."`: PowerShell elimina las comillas dobles al pasar
+# argumentos a un programa externo, así que el código en línea llegaba con `encoding=utf-8` sin
+# comillas y fallaba. Un archivo no tiene ese problema, y además le sirve a quien verifique.
+$lector = Join-Path $PSScriptRoot (Join-Path 'herramientas' 'digest_final.py')
+if (-not (Test-Path -LiteralPath $lector)) { Falla "no existe $lector"; exit 1 }
+$salida = (& $py -I $lector $jsonl --campos 2>&1) -join ' '
 if ($LASTEXITCODE -ne 0) { Falla "no se pudo leer la bitácora: $salida"; exit 1 }
 $campos = $salida.Trim() -split '\s+'
 $registros, $secuencia, $tipo, $digest = $campos[0], $campos[1], $campos[2], $campos[3]
@@ -170,10 +169,11 @@ CÓMO VERIFICARLO (necesita openssl):
 
 Debe responder exactamente: Verification: OK
 
-Y para comprobar que el valor sellado es el de esta bitácora, y no el de otra:
+Y para comprobar que el valor sellado es el de esta bitácora, y no el de otra, desde la raíz del
+repositorio:
 
-    python -I -c "import json;ls=[l for l in open('../../$($Bitacora -replace '\\','/')/evidencia.jsonl',encoding='utf-8').read().splitlines() if l.strip()];print(json.loads(ls[-1])['digest'])"
-    openssl ts -query -in ancla.tsq -text
+    python herramientas/digest_final.py $($Bitacora -replace '\\','/')
+    openssl ts -query -in sello/$nombre/ancla.tsq -text
 
 El valor que imprime el primero debe coincidir con el bloque "Message data" de la salida del
 segundo. openssl lo muestra como volcado hexadecimal repartido en varias líneas y con espacios,

@@ -402,6 +402,42 @@ class TablaSalidaTests(unittest.TestCase):
         self.assertLess(ahorros[-1], 0.2)
 
 
+class DigestFinalTests(unittest.TestCase):
+    """El valor que se sella con el ancla temporal. Vivía como `python -c "..."` dentro del script
+    de PowerShell, que elimina las comillas dobles al pasar argumentos a un programa externo: el
+    código llegaba con `encoding=utf-8` sin comillas y fallaba. Como archivo no tiene ese problema,
+    y además es lo que necesita un tercero para comprobar que el ancla corresponde a la bitácora."""
+
+    RAIZ = Path(__file__).resolve().parents[1]
+    HERRAMIENTA = RAIZ / "herramientas" / "digest_final.py"
+
+    def _correr(self, *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run((sys.executable, "-I", str(self.HERRAMIENTA), *args),
+                              capture_output=True, text=True, cwd=self.RAIZ)
+
+    def test_coincide_con_el_ultimo_registro_de_cada_bitacora(self):
+        carpetas = sorted((self.RAIZ / "evidencia").glob("piloto_*"))
+        if not carpetas:
+            self.skipTest("sin bitácoras")
+        for carpeta in carpetas:
+            with self.subTest(bitacora=carpeta.name):
+                lineas = [x for x in (carpeta / "evidencia.jsonl").read_text(encoding="utf-8").splitlines()
+                          if x.strip()]
+                esperado = json.loads(lineas[-1])["digest"]
+                r = self._correr(str(carpeta))
+                self.assertEqual(r.returncode, 0, r.stderr)
+                self.assertEqual(r.stdout.strip(), esperado)
+                # También acepta el propio .jsonl, y --campos añade el contexto del registro.
+                self.assertEqual(self._correr(str(carpeta / "evidencia.jsonl")).stdout.strip(), esperado)
+                campos = self._correr(str(carpeta), "--campos").stdout.split()
+                self.assertEqual([campos[0], campos[3]], [str(len(lineas)), esperado])
+
+    def test_falla_con_codigo_distinto_de_cero_si_no_puede_leer(self):
+        r = self._correr("no/existe/en/ningun/sitio")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("error", r.stderr.lower())
+
+
 class ScriptsPowerShellTests(unittest.TestCase):
     """`.gitattributes` ya advertía que PowerShell 5.1 necesita CRLF y BOM en los .ps1, pero solo
     los finales de línea estaban garantizados: `eol=crlf` no pone BOM, eso es contenido del archivo.
