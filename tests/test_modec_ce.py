@@ -402,6 +402,27 @@ class TablaSalidaTests(unittest.TestCase):
         self.assertLess(ahorros[-1], 0.2)
 
 
+class ScriptsPowerShellTests(unittest.TestCase):
+    """`.gitattributes` ya advertía que PowerShell 5.1 necesita CRLF y BOM en los .ps1, pero solo
+    los finales de línea estaban garantizados: `eol=crlf` no pone BOM, eso es contenido del archivo.
+    Sin BOM, PowerShell 5.1 lee UTF-8 como Windows-1252 y destroza cada acento. Una advertencia en
+    un comentario no es un control; esta prueba sí lo es."""
+
+    RAIZ = Path(__file__).resolve().parents[1]
+
+    def test_todo_script_ps1_lleva_BOM(self):
+        scripts = sorted(self.RAIZ.glob("*.ps1"))
+        self.assertTrue(scripts, "no se encontró ningún .ps1")
+        for s in scripts:
+            with self.subTest(script=s.name):
+                self.assertTrue(s.read_bytes().startswith(b"\xef\xbb\xbf"),
+                                f"{s.name} no lleva BOM: PowerShell 5.1 le destrozará los acentos")
+
+    def test_gitattributes_fija_crlf_para_ps1(self):
+        atributos = (self.RAIZ / ".gitattributes").read_text(encoding="utf-8")
+        self.assertRegex(atributos, r"\*\.ps1\s+text\s+eol=crlf")
+
+
 class GitignoreSelloTests(unittest.TestCase):
     """La regla `*.pem` excluía en silencio el certificado de la autoridad de sellado, que sí debe
     publicarse junto al ancla. Un archivo que no llega al repositorio sin decir nada es el tipo de

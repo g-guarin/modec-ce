@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
     Ancla temporal RFC 3161 sobre una bitácora de evidencia de MODEC-CE.
