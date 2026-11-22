@@ -36,5 +36,16 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
+
+      # Mitigación, no cura. Dos corridas de seis fallaron con «No artifacts named
+      # "github-pages" were found for this workflow run», pese a que el artefacto sí se había
+      # subido (la corrida lo lista). El propio mensaje de GitHub lo atribuye a un fallo al
+      # consultar los metadatos del artefacto y recomienda reintentar más tarde: es una carrera
+      # entre la subida y su visibilidad en la API, fuera de este repositorio.
+      # La espera reduce esa ventana; no la elimina. Si vuelve a fallar, el remedio sigue siendo
+      # relanzar el flujo, y conviene quitar esta espera en vez de alargarla: no es nuestra.
+      - name: Esperar a que el artefacto sea visible en la API
+        run: sleep 15
+
       - id: despliegue
         uses: actions/deploy-pages@v5
