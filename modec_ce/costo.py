@@ -51,5 +51,7 @@ def cargar_tarifa(modelo: str = "deepseek-flash", franja: str | None = None, *, 
     if franja not in modelos:
         raise ValueError(f"franja {franja} no disponible para {proveedor}/{modelo}")
     t = modelos[franja]
+    # `cache_write` es opcional: sin él, Tarifa.costo cobra la escritura al precio de fallo.
+    escritura = Decimal(t["cache_write"]) if "cache_write" in t else None
     return Tarifa(proveedor, modelo, franja, Decimal(t["cache_hit"]), Decimal(t["cache_miss"]),
-                  Decimal(t["output"]), datos["reference_id"], Decimal(t["cache_write"]))
+                  Decimal(t["output"]), datos["reference_id"], escritura)

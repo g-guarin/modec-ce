@@ -34,6 +34,9 @@ def presencia_uso(usage: Mapping[str, Any] | None) -> dict[str, str]:
 
 
 def uso_evaluable(usage: Mapping[str, Any] | None) -> bool:
+    """Regla P2 sobre el juego de campos de DeepSeek (`CAMPOS_USO`). Cada proveedor aplica la
+    misma regla sobre sus propios nombres de campo en `proveedores.normalizar`; esta función es
+    el caso de DeepSeek y no sirve para los demás."""
     estados = presencia_uso(usage)
     if any(estados[c] != "PRESENTE" for c in CAMPOS_USO):
         return False

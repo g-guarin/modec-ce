@@ -14,4 +14,4 @@ con tres capacidades demostrables:
 Sin datos ni calibración externos: las cargas de trabajo son sintéticas y la
 medición real proviene de los campos `usage` del propio proveedor.
 """
-__version__ = "0.1.0"
+__version__ = "0.2.0"

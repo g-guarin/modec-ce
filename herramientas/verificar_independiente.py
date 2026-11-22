@@ -12,17 +12,24 @@ Comprueba:
 1. que cada `digest` coincide con el contenido del registro;
 2. que `secuencia` es 0, 1, 2, … sin saltos;
 3. que cada `hash_previo` es el `digest` del registro anterior;
-4. que el ahorro de cada corrida, recalculado con los costos registrados en las llamadas, coincide con `resumen.json`.
+4. que el ahorro de cada corrida, recalculado con los costos registrados en las llamadas, coincide con `resumen.json`;
+5. con `--hmac-hex`, que TODO registro trae `key_id` esperado y un HMAC válido (modo estricto: la firma no es
+   opcional, porque `key_id` va dentro del cuerpo digestado y podría quitarse de todos los registros).
 
-Límites: sin la clave HMAC de quien selló la bitácora solo se comprueba la integridad, no la autoría. Sin
-un ancla externa, quien reescriba la bitácora completa puede recalcular todas las huellas.
+Límites: sin la clave HMAC de quien selló la bitácora solo se comprueba la integridad, no la autoría; la clave
+es la declaración de qué firma se espera. Sin un ancla externa (p. ej. un sello de tiempo RFC 3161 sobre el
+`digest` del último registro), quien reescriba la bitácora completa puede recalcular todas las huellas, y el
+truncamiento de la cola no es detectable. La fecha que traen los registros la declara el equipo que ejecutó.
 
 Uso:
     python herramientas/verificar_independiente.py evidencia/<carpeta>
+    python herramientas/verificar_independiente.py evidencia/<carpeta> --hmac-hex <clave_hex> [--key-id modec-ce]
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
+import hmac
 import json
 import sys
 from collections import defaultdict
@@ -30,13 +37,14 @@ from decimal import Decimal
 from pathlib import Path
 
 FORMATO = "modec-ce-cadena-minima-v1"
+KEY_ID_POR_DEFECTO = "modec-ce"
 
 
 def _canonico(obj) -> bytes:
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
 
 
-def verificar(carpeta: Path) -> dict:
+def verificar(carpeta: Path, clave: bytes | None = None, key_id: str = KEY_ID_POR_DEFECTO) -> dict:
     registros = [json.loads(linea) for linea in
                  (carpeta / "evidencia.jsonl").read_text(encoding="utf-8").splitlines() if linea.strip()]
     fallos: list[str] = []
@@ -46,21 +54,36 @@ def verificar(carpeta: Path) -> dict:
             fallos.append(f"registro {i}: formato {r.get('formato')!r} no verificable con esta herramienta")
             continue
         cuerpo = {k: r.get(k) for k in ("formato", "secuencia", "hash_previo", "payload", "key_id")}
-        if hashlib.sha256(_canonico(cuerpo)).hexdigest() != r.get("digest"):
+        cuerpo_bytes = _canonico(cuerpo)
+        if hashlib.sha256(cuerpo_bytes).hexdigest() != r.get("digest"):
             fallos.append(f"registro {i}: digest no coincide (contenido alterado)")
         if r.get("secuencia") != i:
             fallos.append(f"registro {i}: secuencia {r.get('secuencia')} distinta de {i}")
         if r.get("hash_previo") != anterior:
             fallos.append(f"registro {i}: hash_previo no enlaza con el registro anterior")
+        if clave is not None:                       # modo estricto: con clave, la firma no es opcional
+            if not r.get("key_id"):
+                fallos.append(f"registro {i}: sin HMAC; con clave se exige firma en todos los registros")
+            elif r.get("key_id") != key_id:
+                fallos.append(f"registro {i}: key_id {r.get('key_id')!r} distinto del esperado {key_id!r}")
+            elif not hmac.compare_digest(hmac.new(clave, cuerpo_bytes, hashlib.sha256).hexdigest(),
+                                         r.get("hmac") or ""):
+                fallos.append(f"registro {i}: HMAC inválido")
+        elif r.get("key_id"):
+            fallos.append(f"registro {i}: trae HMAC y no se entregó clave para verificarlo (use --hmac-hex)")
         anterior = r.get("digest")
 
     costos: dict[tuple, Decimal] = defaultdict(Decimal)
     llamadas = 0
-    for r in registros:
+    for i, r in enumerate(registros):
         p = r.get("payload") or {}
-        if p.get("tipo") == "LLAMADA":
-            llamadas += 1
+        if p.get("tipo") != "LLAMADA":
+            continue
+        llamadas += 1
+        try:                     # un registro malformado se reporta como fallo, no se propaga como excepción
             costos[(str(p["corrida"]), p["brazo"])] += Decimal(p["costos_usd"]["peak"])
+        except (KeyError, TypeError, ArithmeticError, ValueError):
+            fallos.append(f"registro {i}: LLAMADA sin corrida, brazo o costo utilizable")
 
     resumen_path = carpeta / "resumen.json"
     ahorros = {}
@@ -77,21 +100,43 @@ def verificar(carpeta: Path) -> dict:
                 fallos.append(f"corrida {corrida}: ahorro recalculado {ahorro:.4f} "
                               f"distinto del resumen {datos['ahorro_relativo']}")
 
+    plan = next((r.get("payload") or {} for r in registros if (r.get("payload") or {}).get("tipo") == "PLAN"), {})
+    limites = ["SIN ANCLA EXTERNA: la reescritura total y el truncamiento de la cola no son detectables"]
+    limites.append("AUTENTICIDAD: HMAC verificado con la clave entregada" if clave is not None
+                   else "SIN CLAVE HMAC: integridad, no autoría")
+    if not plan.get("fecha_utc"):
+        limites.append("SIN FECHA EN EL SELLO: esta bitácora no declara cuándo se produjo")
+    if not plan.get("commit"):
+        limites.append("SIN COMMIT EN EL SELLO: esta bitácora no declara con qué versión del código se produjo")
+
     return {
         "registros": len(registros),
         "llamadas": llamadas,
+        "fecha_declarada_utc": plan.get("fecha_utc"),
+        "version_declarada": plan.get("version_modec_ce"),
+        "commit_declarado": plan.get("commit"),
+        "arbol_limpio": plan.get("arbol_limpio"),
+        "autenticidad": "HMAC_VERIFICADO" if clave is not None else "NO_EVALUADA (sin clave)",
         "ahorro_recalculado_por_corrida": ahorros,
         "integra": not fallos and bool(registros),
         "fallos": fallos,
-        "limites": ["SIN CLAVE HMAC: integridad, no autoría", "SIN ANCLA EXTERNA: la reescritura total no es detectable"],
+        "limites": limites,
     }
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 2:
-        print(__doc__)
+    p = argparse.ArgumentParser(description="Verifica una bitácora publicada de MODEC-CE (cadena mínima).")
+    p.add_argument("carpeta", help="carpeta con evidencia.jsonl y, opcionalmente, resumen.json")
+    p.add_argument("--hmac-hex", default=None,
+                   help="clave HMAC en hexadecimal; activa el modo estricto de autenticidad")
+    p.add_argument("--key-id", default=KEY_ID_POR_DEFECTO, help=f"key_id esperado (por defecto {KEY_ID_POR_DEFECTO})")
+    args = p.parse_args(argv[1:])
+    try:
+        clave = bytes.fromhex(args.hmac_hex.strip()) if args.hmac_hex else None
+    except ValueError:
+        print("--hmac-hex no es hexadecimal válido", file=sys.stderr)
         return 2
-    informe = verificar(Path(argv[1]))
+    informe = verificar(Path(args.carpeta), clave, args.key_id)
     print(json.dumps(informe, ensure_ascii=False, indent=2))
     return 0 if informe["integra"] else 1
 

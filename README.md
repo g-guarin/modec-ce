@@ -53,9 +53,11 @@ Carga sintética más pequeña que la de la simulación: orquestador más 3 agen
 - **Verificación independiente**, sin instalar nada:
   ```bash
   python herramientas/verificar_independiente.py evidencia/piloto_deepseek_20261121
+  # con clave, para comprobar también autoría (modo estricto):
+  python herramientas/verificar_independiente.py evidencia/<carpeta> --hmac-hex <clave_hex>
   ```
   Recalcula el digest SHA-256 de cada registro, cada enlace `hash_previo` y el ahorro de cada corrida a partir de los costos registrados en las llamadas. No recalcula el costo a partir de tokens y tarifa.
-- **Límites:** la bitácora se selló sin clave HMAC, así que se comprueba su integridad pero no su autoría. No tiene ancla externa. Los adaptadores de Anthropic, OpenAI y OpenRouter solo se han probado con respuestas simuladas, no con llamadas reales; falta repetir el piloto con Anthropic y OpenAI.
+- **Límites:** la bitácora se selló sin clave HMAC, así que se comprueba su integridad pero no su autoría. No tiene ancla externa. **Esta bitácora, producida con 0.1.0, no declara dentro del sello ni la fecha ni la versión del código**: la fecha solo aparece en el nombre de la carpeta, que está fuera de la cadena. El verificador lo reporta como límite. Desde 0.2.0 esos campos viajan dentro del payload (ver CHANGELOG). Los adaptadores de Anthropic, OpenAI y OpenRouter solo se han probado con respuestas simuladas, no con llamadas reales; falta repetir el piloto con Anthropic y OpenAI.
 
 ## Inicio rápido (sin claves ni red)
 
@@ -109,6 +111,16 @@ Diseño del piloto:
 | Con `pesd-nucleo` 2.0.0 instalado o en `MODEC_CE_PESD_SRC` | Núcleo PESD (propietario, opcional, no incluido) | Según el autor, lo anterior más garantías adicionales de ese núcleo. Una bitácora sellada con él no se puede verificar sin él. |
 
 Ninguno de los dos detecta, sin un ancla externa, que se haya truncado el final de la cadena ni que se haya reescrito entera (sin clave HMAC); los dos lo declaran como límite. Cada resultado indica qué motor lo selló (`motor_evidencia`). `MODEC_CE_SIN_PESD=1` fuerza la cadena mínima.
+
+Qué ata el sello y qué no:
+
+| Pregunta del tercero | ¿La responde el sello? |
+|---|---|
+| ¿Se alteró, borró o reordenó algún registro? | Sí |
+| ¿Quién lo selló? | Solo con clave HMAC, y en modo estricto (se exige firma en todos los registros) |
+| ¿Cuándo se produjo? | Desde 0.2.0 va dentro del payload, pero es una fecha **declarada** por el equipo que ejecuta |
+| ¿Con qué versión del código? | Desde 0.2.0: versión, commit y si el árbol estaba limpio |
+| ¿Se truncó el final o se reescribió todo? | No, sin ancla externa (sello de tiempo RFC 3161 sobre el último `digest`) |
 
 ```mermaid
 flowchart LR

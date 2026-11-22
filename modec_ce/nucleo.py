@@ -127,7 +127,13 @@ class RegistroMinimo:
 
 class CadenaMinima:
     """Sella y verifica sin el núcleo PESD. Detecta alteración, borrado intermedio y reordenación;
-    sin ancla externa no detecta el truncamiento de la cola (igual que PESD sin ancla)."""
+    sin ancla externa no detecta el truncamiento de la cola (igual que PESD sin ancla).
+
+    Verificación con clave = MODO ESTRICTO: si se entrega clave, se exige que TODO registro
+    traiga `key_id` esperado y un HMAC válido. Sin esa exigencia la autenticidad sería
+    degradable: como `key_id` va dentro del cuerpo digestado, quien reescriba la cadena podría
+    quitar `key_id` y `hmac` de cada registro, recalcular los digest y pasar la verificación
+    limpia. Un control que no reclama lo ausente contradice P2."""
 
     def __init__(self, clave: bytes | None, key_id: str):
         self.clave, self.key_id = clave, key_id
@@ -154,14 +160,21 @@ class CadenaMinima:
                 motivos.append(f"[{i}] secuencia {r.secuencia} != {i}")
             if r.hash_previo != previo:
                 motivos.append(f"[{i}] enlace hash_previo roto")
-            if r.key_id:
-                if not self.clave:
-                    motivos.append(f"[{i}] registro con HMAC y sin clave para verificarlo")
+            if self.clave:                                   # modo estricto: la firma no es opcional
+                if not r.key_id:
+                    motivos.append(f"[{i}] registro sin HMAC: con clave se exige firma en todos los registros")
+                elif r.key_id != self.key_id:
+                    motivos.append(f"[{i}] key_id {r.key_id!r} distinto del esperado {self.key_id!r}")
                 elif not hmac.compare_digest(hmac.new(self.clave, cuerpo, hashlib.sha256).hexdigest(), r.hmac or ""):
                     motivos.append(f"[{i}] HMAC inválido")
+            elif r.key_id:
+                motivos.append(f"[{i}] registro con HMAC y sin clave para verificarlo")
             previo = r.digest
         limites = ["SIN ANCLA: el truncamiento de la cola y la reescritura total no son detectables",
                    "CADENA MÍNIMA: integridad genérica, sin el motor de evidencia opcional del núcleo propietario"]
+        if not self.clave:
+            limites.append("SIN CLAVE: solo integridad. La clave es la declaración de qué firma se espera; "
+                           "sin entregarla, una cadena a la que se le quitaron las firmas verifica igual")
         return motivos, limites
 
 

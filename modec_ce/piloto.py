@@ -16,6 +16,10 @@ Diseño (ajustado tras la primera propuesta):
 
 La clave se lee de la variable de entorno del proveedor y nunca se escribe. No se guardan
 prompts ni respuestas: solo huellas, conteos, latencias y costos, sellados con PESD P1.
+
+Dentro del sello viaja también la procedencia de la corrida (fecha UTC, versión de
+`modec_ce`, commit y si el árbol estaba limpio), para que la bitácora quede atada a un
+momento declarado y a una versión del código, no solo a su propio contenido.
 """
 from __future__ import annotations
 
@@ -35,6 +39,7 @@ from . import tokens
 from .carga import ConfigCarga, generar_peticiones
 from .costo import Tarifa, cargar_tarifa, franjas
 from .evidencia import CadenaEvidencia
+from .procedencia import ahora_utc, sello_corrida
 from .proveedores import PROVEEDORES, Proveedor, a_json, clave_de, url_de
 
 CONFIRMACION = "EJECUTAR-PILOTO"
@@ -185,10 +190,11 @@ def ejecutar_piloto(
                     "presupuesto_usd": str(limites.presupuesto_usd), "tarifa": alta.referencia,
                     "pausa_s": limites.pausa_s, "max_tokens_salida": limites.max_tokens_salida,
                     "carga": cfg.a_dict(), "contenido_identico": _contenido_identico(plan, brazos),
-                    "motor_evidencia": cadena.motor_evidencia})
+                    "motor_evidencia": cadena.motor_evidencia, **sello_corrida()})
 
     for ll in plan:
         cuerpo = a_json(prov.cuerpo(modelo, ll.segmentos, limites.max_tokens_salida, opciones))
+        instante = ahora_utc()
         t0 = reloj()
         try:
             estado, crudo = transporte(url, prov.cabeceras(clave), cuerpo, limites.timeout_s)
@@ -210,6 +216,7 @@ def ejecutar_piloto(
         fila: dict[str, Any] = {
             "tipo": "LLAMADA", "indice": ll.indice, "corrida": ll.corrida, "brazo": ll.brazo, "paso": ll.paso,
             "agente": ll.agente, "proveedor": proveedor, "modelo": modelo, "http": estado,
+            "instante_utc": instante,
             "latencia_ms": latencia_ms, "huella_peticion": ll.huella_peticion,
             "huella_contenido": ll.huella_contenido, "tokens_estimados": tokens.contar(ll.texto),
             "presencia_uso": uso.presencia, "evaluable": evaluable,
@@ -236,7 +243,8 @@ def ejecutar_piloto(
             dormir(limites.pausa_s)
 
     resumen = resumir(res.llamadas, brazos)
-    resumen.update(proveedor=proveedor, modelo=modelo, detenido=res.detenido, verificacion=cadena.verificar())
+    resumen.update(proveedor=proveedor, modelo=modelo, detenido=res.detenido,
+                   fecha_utc_cierre=ahora_utc(), verificacion=cadena.verificar())
     if proveedor == "local":
         resumen["ahorro_equivalente_deepseek"] = ahorro_equivalente(res.llamadas, brazos,
                                                                     cargar_tarifa("deepseek-flash", "peak"))

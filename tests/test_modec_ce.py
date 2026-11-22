@@ -11,7 +11,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from modec_ce import nucleo, simulacion, tokens  # noqa: E402
+import modec_ce  # noqa: E402
+from modec_ce import nucleo, procedencia, simulacion, tokens  # noqa: E402
 from modec_ce.cache import ModeloCachePrefijos  # noqa: E402
 from modec_ce.carga import DISPOSICIONES, ConfigCarga, generar_peticiones, supertoken  # noqa: E402
 from modec_ce.costo import cargar_tarifa  # noqa: E402
@@ -189,6 +190,26 @@ class PilotoTests(unittest.TestCase):
             self.assertNotIn("CORPUS COMPARTIDO", evidencia)
             self.assertNotIn("clave-de-prueba", evidencia)
 
+    def test_el_sello_declara_fecha_version_y_commit(self):
+        """Sin fecha ni versión dentro del payload, un tercero no puede fechar la bitácora
+        ni atarla a una versión publicada del código."""
+        import re
+        with tempfile.TemporaryDirectory() as tmp:
+            res = self._ejecutar(tmp)
+            registros = [json.loads(x) for x in
+                         (res.carpeta / "evidencia.jsonl").read_text(encoding="utf-8").splitlines() if x.strip()]
+            plan = next(r["payload"] for r in registros if r["payload"]["tipo"] == "PLAN")
+            self.assertRegex(plan["fecha_utc"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+            self.assertEqual(plan["version_modec_ce"], modec_ce.__version__)
+            self.assertIn("commit", plan)
+            self.assertIn("arbol_limpio", plan)
+            llamadas = [r["payload"] for r in registros if r["payload"]["tipo"] == "LLAMADA"]
+            self.assertTrue(llamadas)
+            for ll in llamadas:
+                self.assertRegex(ll["instante_utc"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+            resumen = json.loads((res.carpeta / "resumen.json").read_text(encoding="utf-8"))
+            self.assertRegex(resumen["fecha_utc_cierre"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+
     def test_uso_sin_campos_de_cache_detiene(self):
         with tempfile.TemporaryDirectory() as tmp:
             res = self._ejecutar(tmp, transporte=transporte_simulado(sin_cache=True))
@@ -325,6 +346,50 @@ class CadenaMinimaTests(unittest.TestCase):
         self.assertTrue(self._cadena(bytes(32)).verificar([r])[0])
         self.assertTrue(self._cadena(None).verificar([r])[0])
 
+    def test_modo_estricto_rechaza_una_cadena_a_la_que_le_quitaron_las_firmas(self):
+        """`key_id` va dentro del cuerpo digestado: quien reescriba la cadena puede quitar
+        `key_id` y `hmac` de todos los registros y recalcular los digest. Con clave, eso
+        debe fallar; si no, la autenticidad sería degradable sin dejar rastro."""
+        clave = bytes(range(32))
+        c = self._cadena(clave)
+        regs, ant = [], None
+        for i in range(3):
+            ant = c.sellar({"i": i}, ant)
+            regs.append(ant)
+        self.assertEqual(c.verificar(regs)[0], [])
+
+        sin_firma, previo = [], None                      # reescritura completa sin firmas, digest recalculados
+        plano = nucleo.CadenaMinima(None, "modec-ce")
+        for r in regs:
+            previo = plano.sellar(r.payload, previo)
+            sin_firma.append(previo)
+        self.assertEqual(plano.verificar(sin_firma)[0], [])          # sin clave: pasa, es solo integridad
+        motivos = c.verificar(sin_firma)[0]                          # con clave: debe reclamar lo ausente
+        self.assertTrue(motivos)
+        self.assertTrue(all("sin HMAC" in m for m in motivos), motivos)
+
+    def test_modo_estricto_rechaza_key_id_inesperado(self):
+        clave = bytes(range(32))
+        r = nucleo.CadenaMinima(clave, "otro-firmante").sellar({"x": 1}, None)
+        self.assertTrue(any("key_id" in m for m in self._cadena(clave).verificar([r])[0]))
+
+    def test_sin_clave_el_limite_declara_que_la_autenticidad_no_se_evaluo(self):
+        limites = self._cadena(None).verificar([self._cadena(None).sellar({"x": 1}, None)])[1]
+        self.assertTrue(any("SIN CLAVE" in x for x in limites), limites)
+
+
+class ProcedenciaTests(unittest.TestCase):
+    def test_sello_corrida_declara_fecha_version_y_estado_del_arbol(self):
+        s = procedencia.sello_corrida()
+        self.assertRegex(s["fecha_utc"], r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
+        self.assertEqual(s["version_modec_ce"], modec_ce.__version__)
+        self.assertIn(s["commit"], (None, s["commit"]))
+        if s["commit"] is None:
+            self.assertIn("AUSENTE", s["procedencia_codigo"])      # P2: ausente no se rellena con un valor
+        else:
+            self.assertRegex(s["commit"], r"^[0-9a-f]{40}$")
+            self.assertIn(s["arbol_limpio"], (True, False))
+
     def test_registro_minimo_cero_y_false_son_presentes(self):
         R = nucleo.registro_minimo
         self.assertEqual(R({"a": 0}, "a").name, "PRESENTE")
@@ -435,6 +500,54 @@ class EvidenciaPublicadaTests(unittest.TestCase):
             lineas[1] = json.dumps(registro, ensure_ascii=False)
             (carpeta / "evidencia.jsonl").write_text("\n".join(lineas) + "\n", encoding="utf-8")
             self.assertFalse(v.verificar(carpeta)["integra"])
+
+    def test_modo_estricto_del_verificador_independiente(self):
+        """Un tercero con la clave debe detectar que se quitaron las firmas, no ver 'íntegra'."""
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = Path(tmp)
+            clave = bytes(range(32))
+            firmada = nucleo.CadenaMinima(clave, "modec-ce")
+            plana = nucleo.CadenaMinima(None, "modec-ce")
+            previo_f = previo_p = None
+            lineas_f, lineas_p = [], []
+            for i in range(3):
+                carga = {"tipo": "LLAMADA", "corrida": 1, "brazo": "modec", "costos_usd": {"peak": "0.0010"},
+                         "i": i}
+                previo_f = firmada.sellar(carga, previo_f)
+                previo_p = plana.sellar(carga, previo_p)
+                lineas_f.append(previo_f.a_json())
+                lineas_p.append(previo_p.a_json())
+            v = self._verificador()
+
+            (carpeta / "evidencia.jsonl").write_text("\n".join(lineas_f) + "\n", encoding="utf-8")
+            self.assertTrue(v.verificar(carpeta, clave)["integra"])
+            self.assertFalse(v.verificar(carpeta)["integra"])            # trae firma y no se dio clave
+            self.assertFalse(v.verificar(carpeta, bytes(32))["integra"])  # clave equivocada
+
+            (carpeta / "evidencia.jsonl").write_text("\n".join(lineas_p) + "\n", encoding="utf-8")
+            self.assertTrue(v.verificar(carpeta)["integra"])              # sin clave: solo integridad
+            informe = v.verificar(carpeta, clave)
+            self.assertFalse(informe["integra"])
+            self.assertTrue(any("sin HMAC" in f for f in informe["fallos"]), informe["fallos"])
+
+    def test_registro_malformado_se_reporta_no_lanza_excepcion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = Path(tmp)
+            c = nucleo.CadenaMinima(None, "modec-ce")
+            r = c.sellar({"tipo": "LLAMADA"}, None)          # sin corrida, brazo ni costo
+            (carpeta / "evidencia.jsonl").write_text(r.a_json() + "\n", encoding="utf-8")
+            informe = self._verificador().verificar(carpeta)
+            self.assertFalse(informe["integra"])
+            self.assertTrue(any("sin corrida" in f for f in informe["fallos"]), informe["fallos"])
+
+    def test_el_verificador_declara_si_falta_fecha_o_commit_en_el_sello(self):
+        if not self.CARPETA.exists():
+            self.skipTest("sin bitácora publicada")
+        informe = self._verificador().verificar(self.CARPETA)
+        if informe["fecha_declarada_utc"] is None:
+            self.assertTrue(any("SIN FECHA" in x for x in informe["limites"]), informe["limites"])
+        if informe["commit_declarado"] is None:
+            self.assertTrue(any("SIN COMMIT" in x for x in informe["limites"]), informe["limites"])
 
     def test_bitacora_publicada_integra(self):
         if not self.CARPETA.exists():
