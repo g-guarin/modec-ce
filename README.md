@@ -220,6 +220,8 @@ tests/           pruebas sin red
 evidencia/       bitácoras selladas de pilotos reales publicadas a propósito
 herramientas/    verificar_independiente.py (solo biblioteca estándar)
 piloto_proveedor.ps1   piloto real desde PowerShell con la clave protegida
+sellar_tiempo.ps1      ancla temporal RFC 3161 sobre el digest final de una bitácora
+sello/                 anclas temporales: solicitud, respuesta firmada, certificados y registro
 ```
 
 ## Autoría
