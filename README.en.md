@@ -5,6 +5,8 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 
 > English summary. The full documentation is in Spanish: [README.md](README.md).
+>
+> A worked example of what a delivery made with this looks like (in Spanish): [docs/caso-de-uso.md](docs/caso-de-uso.md).
 
 **MODEC-CE does not offer a new way to cut LLM costs. It offers a way to prove how much they were cut, so that someone else can check it.**
 

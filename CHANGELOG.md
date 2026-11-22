@@ -55,6 +55,17 @@ Cierra tres huecos de la 0.1.0 señalados en una auditoría del repositorio púb
 
 Suite de 38 a 50 pruebas.
 
+### Caso de uso: cómo se ve una entrega hecha con esto
+
+- `docs/caso-de-uso.md`: un ejemplo trabajado de una entrega a un cliente, construido con la
+  bitácora real del piloto del 2026-11-22. Contrasta una afirmación de ahorro no auditable con la
+  misma cifra respaldada por evidencia sellada, enumera qué comprueba el cliente en dos minutos y
+  qué sigue sin estar probado, y explica por qué debe exigir que se mida su propia carga.
+- Dos pruebas lo sostienen: una comprueba que cada cifra del documento sale de `resumen.json` de la
+  bitácora publicada, y otra que el documento declara que el escenario es ilustrativo. Un informe
+  de ejemplo que no se declara como tal es un registro fabricado, y este repositorio no publica eso.
+- Enlazado desde ambos README.
+
 ### Posicionamiento: qué resuelve esto que la documentación del proveedor no resuelve
 
 El repositorio exponía bien QUÉ mide y mal PARA QUÉ sirve. Montaba un aparato de evidencia sin

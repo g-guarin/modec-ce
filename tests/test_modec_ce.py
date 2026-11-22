@@ -402,6 +402,47 @@ class TablaSalidaTests(unittest.TestCase):
         self.assertLess(ahorros[-1], 0.2)
 
 
+class CasoDeUsoTests(unittest.TestCase):
+    """El caso de uso presenta cifras como si fueran una entrega a un cliente. Si se desfasaran de
+    la bitácora publicada, el repositorio estaría haciendo lo mismo que el documento critica:
+    presentar un número que no sale de la evidencia que dice respaldarlo."""
+
+    RUTA = Path(__file__).resolve().parents[1] / "docs" / "caso-de-uso.md"
+    BITACORA = (Path(__file__).resolve().parents[1] / "evidencia"
+                / "piloto_deepseek_20261122_135846_5c1d7c" / "resumen.json")
+
+    def test_las_cifras_salen_de_la_bitacora_publicada(self):
+        if not self.RUTA.exists() or not self.BITACORA.exists():
+            self.skipTest("sin caso de uso o sin bitácora")
+        texto = self.RUTA.read_text(encoding="utf-8")
+        d = json.loads(self.BITACORA.read_text(encoding="utf-8"))
+
+        def coma(x: str) -> str:
+            return x.replace(".", ",")
+
+        for brazo in ("ingenua_rol", "modec"):
+            b = d["brazos"][brazo]
+            self.assertIn(coma(f"{100 * b['tasa_acierto']:.2f}"), texto, f"tasa de {brazo}")
+            for franja in ("peak", "offpeak"):
+                self.assertIn(coma(f"{Decimal(b['costos_usd'][franja]):.6f}"), texto,
+                              f"costo {franja} de {brazo}")
+            self.assertIn(coma(f"{b['latencia_total_ms'] / 1000:.1f}"), texto, f"latencia de {brazo}")
+
+        for corrida in d["corridas"].values():
+            self.assertIn(coma(f"{100 * corrida['ahorro_relativo']:.2f}"), texto)
+        self.assertIn(coma(f"{100 * d['ahorro_relativo']['media']:.2f}"), texto)
+        # El documento debe señalar de qué bitácora salen las cifras, no solo citarlas.
+        self.assertIn(self.BITACORA.parent.name, texto)
+
+    def test_declara_que_el_escenario_es_ilustrativo(self):
+        """Un informe de ejemplo que no se declara como tal es un registro fabricado."""
+        if not self.RUTA.exists():
+            self.skipTest("sin caso de uso")
+        texto = self.RUTA.read_text(encoding="utf-8").lower()
+        self.assertIn("no hay cliente", texto)
+        self.assertIn("ilustrativo", texto)
+
+
 class CitacionTests(unittest.TestCase):
     RUTA = Path(__file__).resolve().parents[1] / "CITATION.cff"
 

@@ -4,7 +4,7 @@
 ![Licencia](https://img.shields.io/badge/licencia-Apache%202.0-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 
-**English summary:** [README.en.md](README.en.md) · **Demo (informe HTML estático generado por el propio programa, con la simulación y los pilotos publicados):** https://g-guarin.github.io/modec-ce/
+**English summary:** [README.en.md](README.en.md) · **Demo (informe HTML estático generado por el propio programa, con la simulación y los pilotos publicados):** https://g-guarin.github.io/modec-ce/ · **Cómo se ve una entrega hecha con esto:** [docs/caso-de-uso.md](docs/caso-de-uso.md)
 
 **MODEC-CE no propone una forma nueva de abaratar el uso de modelos de lenguaje. Propone una forma de demostrar cuánto se abarató, que un tercero pueda comprobar.**
 
