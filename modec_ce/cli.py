@@ -55,6 +55,15 @@ def cmd_sensibilidad(_args) -> int:
     s = simulacion.sensibilidad()
     _escribir("sensibilidad.json", s)
     print(f"ahorro estimado de modec frente a ingenua_rol: {s['ahorro_min']:.1%} a {s['ahorro_max']:.1%}")
+
+    # El ahorro depende tanto de la longitud de la salida como del tamaño de la carga, y esa
+    # dependencia es la que hace que un porcentaje ajeno no sirva para decidir.
+    sal = simulacion.sensibilidad_salida()
+    _escribir("sensibilidad_salida.json", sal)
+    print("con el acierto de caché medido en el piloto, el ahorro según la salida por llamada:")
+    for f in sal["filas"]:
+        print(f"  salida {f['salida_por_llamada']:>5} tokens -> ahorro {f['ahorro']:.1%} "
+              f"(la entrada es el {f['entrada_en_la_factura']:.0%} de la factura)")
     return cmd_informe(None)
 
 

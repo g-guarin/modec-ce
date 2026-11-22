@@ -16,6 +16,61 @@ MODEC-CE mide cuánto se ahorra en una orquestación multiagente sobre LLM al or
 
 Es una práctica que los proveedores recomiendan: poner primero el contenido estático. Lo que MODEC-CE añade es **medirlo** en una carga multiagente con contenido idéntico entre brazos y **dejar la medición sellada**.
 
+## Qué resuelve esto que la documentación del proveedor no resuelve
+
+La técnica no es nueva ni escasa: ordenar el prompt de estable a variable es lo que los propios proveedores recomiendan, y cualquiera que lea su documentación llega a lo mismo sin este repositorio. **MODEC-CE no se propone como una forma mejor de ahorrar. Se propone como una forma de demostrar cuánto se ahorró.**
+
+La diferencia importa porque el ahorro depende tanto de la forma de la carga que **un porcentaje ajeno no sirve para decidir**. Con el acierto de caché exactamente medido en el piloto real (39,0 % frente a 82,5 %) y sin cambiar nada más, basta alargar la salida del modelo para que el ahorro se desplome:
+
+<!-- SALIDA -->
+| Salida por llamada | Ahorro | La entrada es, de la factura |
+|---|---|---|
+| 64 tokens | 65,1 % | 94 % |
+| 200 | 58,2 % | 84 % |
+| 500 | 47,2 % | 68 % |
+| 1 000 | 35,9 % | 52 % |
+| 2 000 | 24,2 % | 35 % |
+| 5 000 | 12,3 % | 18 % |
+<!-- /SALIDA -->
+
+La disposición del prompt abarata la entrada y no toca la salida: cuanto más escribe el modelo, menos pesa la entrada en la factura. Una prueba comprueba que esta tabla coincide con el código; se regenera con `python -m modec_ce sensibilidad`.
+
+Por eso una afirmación como «reducimos tu gasto en IA un 65 %» es, por sí sola, casi vacía: sin la forma de la carga que la produjo no es comprobable ni comparable.
+
+### Para quién es esto, y contra qué protege
+
+MODEC-CE sirve a quien **tiene que sostener una cifra de costo ante alguien más**, no a quien solo quiere bajar su propia factura:
+
+- Quien **cobra** por una optimización de costos y hoy entrega una hoja de cálculo que hizo él mismo.
+- Quien **compra** esa optimización y no tiene forma de auditar la cifra que le presentan.
+- Quien **publica** un resultado de costo y necesita que otro pueda reproducirlo.
+- Quien **compara** proveedores o configuraciones y necesita que la comparación no dependa de su palabra.
+
+El modelo de amenaza es ese, y conviene decirlo sin rodeos: **quien tiene incentivo para inflar una medición de ahorro es, normalmente, quien cobra por haberla conseguido.** No hace falta mala fe para que la cifra se desvíe — basta elegir la carga favorable, la franja tarifaria favorable, o descartar la corrida que salió mal. Una bitácora encadenada no impide nada de eso por sí sola, pero sí deja constancia de **qué se midió, en qué orden, con qué tarifa y qué no se pudo medir**, de modo que la discusión deje de ser sobre la buena fe de quien presenta el número.
+
+Contra eso protege cada pieza, y contra nada más:
+
+| Pregunta del escéptico | Qué responde MODEC-CE |
+|---|---|
+| ¿Se descartaron las corridas desfavorables? | La cadena es continua y numerada: falta una y se nota |
+| ¿Se retocó el resultado después? | Cada registro encadena el digest del anterior |
+| ¿De dónde salen los precios? | Tabla de tarifas fechada y con su fuente, separada del código |
+| ¿Cuánto es medido y cuánto supuesto? | Cada cifra se marca ESTIMADA, MEDIDA o DERIVADA |
+| ¿Y lo que el proveedor no informó? | Queda AUSENTE y la corrida se detiene; nunca se cuenta como cero |
+| ¿Cuándo y con qué código se produjo? | Van dentro del sello desde la versión 0.2.0 |
+| ¿Hay que creerle a la herramienta? | No: el verificador corre sin instalar nada y declara sus propios límites |
+
+Lo que **no** hace, y está dicho en [SECURITY.md](SECURITY.md): no prueba autoría sin clave, no detecta la reescritura total sin un ancla externa, y no valida que la carga medida se parezca a la suya. Para eso último la respuesta no es confiar en esta tabla, sino correr el piloto con su propia carga.
+
+### Procedencia de los patrones
+
+Dos comportamientos de este repositorio no son invención suya: provienen del marco de **patrones estructurales PESD** del autor, y aquí están implementados y a la vista.
+
+- **P1, sellado encadenado.** Cada registro lleva el digest del anterior, de modo que el orden forma parte de lo sellado. Lo implementa `modec_ce/nucleo.py`; el repositorio trae una cadena mínima propia e independiente, y usa el núcleo PESD solo si está disponible.
+- **P2, centinela de presencia.** Un dato que no llega no se sustituye por un valor por omisión: se marca AUSENTE y el proceso se detiene. Lo implementa `modec_ce/evidencia.py`, y gobierna tanto los campos de uso del proveedor como los campos de procedencia del propio sello, que quedan en `null` y declarados AUSENTE cuando no se pueden obtener.
+
+Ambos se pueden leer, correr y poner a prueba en este repositorio sin tener acceso a nada más: las pruebas incluyen el caso en que P2 detiene una corrida y el caso en que una cadena reescrita sin firmas es rechazada. La mención está aquí porque describe de dónde viene el diseño, no como referencia a un componente que no se pueda inspeccionar.
+
 ## Resultados y su procedencia
 
 <!-- CIFRAS -->

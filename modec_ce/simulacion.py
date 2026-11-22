@@ -17,6 +17,7 @@ import sys
 from dataclasses import asdict
 from decimal import Decimal
 from pathlib import Path
+from collections.abc import Sequence
 from typing import Any
 
 from . import tokens
@@ -96,6 +97,49 @@ def medir_compresion(cfg: ConfigCarga, instrumento: str = "auto") -> dict[str, A
 def _acierto_por_bloques(acierto: int, minimo: int, bloque: int) -> int:
     """Regla genérica tipo OpenAI: sin caché bajo `minimo`; el resto se cuenta en múltiplos de `bloque`."""
     return 0 if acierto < minimo else (acierto // bloque) * bloque
+
+
+def sensibilidad_salida(salidas: Sequence[int] = (64, 200, 500, 1000, 2000, 5000), entrada: int = 7000,
+                        acierto_base: float = 0.390, acierto_modec: float = 0.825,
+                        modelo: str = "deepseek-flash") -> dict[str, Any]:
+    """Cuánto depende el ahorro de la LONGITUD DE LA SALIDA, con las tasas de acierto MEDIDAS.
+
+    La disposición del prompt abarata la ENTRADA; no toca la salida. Cuanto más escribe el modelo,
+    menor es la fracción de la factura que la entrada representa, y menor el ahorro relativo, sin
+    que cambie nada en la disposición ni en el acierto de caché.
+
+    De ahí la consecuencia que esta tabla existe para hacer visible: **una cifra de ahorro sin la
+    forma de la carga que la produjo no dice casi nada**. La misma técnica, con el mismo acierto de
+    caché medido, rinde 65 % con salidas de 64 tokens y 12 % con salidas de 5 000. Por eso un
+    porcentaje ajeno no sirve para decidir, y conviene medir el propio.
+
+    `acierto_base` y `acierto_modec` son los MEDIDOS por DeepSeek en el piloto del 2026-11-22
+    (39,0 % y 82,5 %). `entrada` es el orden de magnitud de esa carga, que facturó entre 5 842 y
+    8 939 tokens de entrada por llamada. El resto es DERIVADO de la tarifa declarada.
+    """
+    tarifa = cargar_tarifa(modelo, "peak")
+    filas = []
+    for salida in salidas:
+        hit_b = round(entrada * acierto_base)
+        hit_m = round(entrada * acierto_modec)
+        c_base = tarifa.costo(hit_b, entrada - hit_b, salida)
+        c_modec = tarifa.costo(hit_m, entrada - hit_m, salida)
+        solo_salida = tarifa.costo(0, 0, salida)
+        filas.append({
+            "salida_por_llamada": salida,
+            "costo_ingenua_rol": f"{c_base:.9f}",
+            "costo_modec": f"{c_modec:.9f}",
+            "ahorro": float(round((c_base - c_modec) / c_base, 4)),
+            "entrada_en_la_factura": float(round((c_base - solo_salida) / c_base, 4)),
+        })
+    return {
+        "entrada_por_llamada": entrada,
+        "acierto_ingenua_rol": acierto_base,
+        "acierto_modec": acierto_modec,
+        "tarifa": tarifa.referencia,
+        "procedencia": "acierto de caché MEDIDO en el piloto 2026-11-22; costo DERIVADO de tarifa DECLARADA",
+        "filas": filas,
+    }
 
 
 def sensibilidad(agentes_opciones=(2, 4, 8), corpus_opciones=(1000, 4000, 12000), pasos: int = 3,

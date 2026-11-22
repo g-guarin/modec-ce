@@ -55,6 +55,31 @@ Cierra tres huecos de la 0.1.0 señalados en una auditoría del repositorio púb
 
 Suite de 38 a 50 pruebas.
 
+### Posicionamiento: qué resuelve esto que la documentación del proveedor no resuelve
+
+El repositorio exponía bien QUÉ mide y mal PARA QUÉ sirve. Montaba un aparato de evidencia sin
+declarar nunca contra qué protege, lo que invita a leerlo como sobre-ingeniería.
+
+- **Modelo de amenaza declarado** en SECURITY.md, con una tabla de qué manipulación detecta la
+  cadena y cuál no. La fila que importa es la que dice que NO: elegir una carga o una tarifa
+  favorables no lo detecta nada, y eso no se arregla con criptografía.
+- **Para quién es**, en ambos README: quien debe sostener una cifra de costo ante otro —consultoría,
+  compras, auditoría, publicación—, no quien solo quiere una factura menor. La técnica de disposición
+  es práctica recomendada por los proveedores y no se propone como novedad; lo que se propone es que
+  la medición quede sellada y la pueda comprobar un tercero.
+- **`sensibilidad_salida()`** y tabla en los dos README: con el acierto de caché MEDIDO en el piloto
+  y sin cambiar nada más, alargar la salida lleva el ahorro del 65 % al 12 %. La disposición abarata
+  la entrada y no toca la salida. Una prueba comprueba que la tabla coincide con el código.
+  Esa dependencia es el argumento, no una concesión: si el ahorro depende tanto de la forma de la
+  carga, un porcentaje ajeno no sirve para decidir y hay que medir el propio.
+- **Procedencia de los patrones**: se declara que el sellado encadenado (P1) y el centinela de
+  presencia (P2) provienen del marco de patrones estructurales PESD del autor, señalando el archivo
+  que implementa cada uno. Se mencionan porque son inspeccionables y están cubiertos por pruebas en
+  este mismo repositorio, no como referencia a un componente que no se pueda examinar.
+- Metadatos de descubrimiento: resumen y palabras clave de CITATION.cff reescritos hacia
+  verificabilidad y auditoría; `description`, `author` y etiquetas Open Graph en el informe HTML, y
+  un párrafo de tesis en su cabecera.
+
 ### Segundo piloto real con DeepSeek, ya con procedencia sellada
 
 - Publicada `evidencia/piloto_deepseek_20261122_135846_5c1d7c/`, con el nombre de carpeta que

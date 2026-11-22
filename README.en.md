@@ -16,6 +16,47 @@
 
 Putting static content first is something providers already recommend. What MODEC-CE adds is **measuring it** on a multi-agent workload with identical content in both arms, and **leaving the measurement verifiable**.
 
+## What this solves that the provider's docs do not
+
+The technique is neither new nor scarce: laying out prompts from stable to volatile is what the providers themselves recommend. **MODEC-CE is not offered as a better way to save. It is offered as a way to prove how much was saved.**
+
+That distinction matters because the saving depends so heavily on the shape of the workload that **somebody else's percentage is not a basis for a decision**. Holding the cache-hit rates exactly as measured in the real pilot (39.0 % vs 82.5 %) and changing nothing else, simply making the model write more collapses the saving:
+
+| Output per call | Saving | Input, as a share of the bill |
+|---|---|---|
+| 64 tokens | 65.1 % | 94 % |
+| 200 | 58.2 % | 84 % |
+| 500 | 47.2 % | 68 % |
+| 1,000 | 35.9 % | 52 % |
+| 2,000 | 24.2 % | 35 % |
+| 5,000 | 12.3 % | 18 % |
+
+Prompt layout makes the *input* cheaper and does nothing to the output. A test checks this table against the code; regenerate it with `python -m modec_ce sensibilidad`.
+
+So a claim like "we cut your AI spend by 65 %" is close to empty on its own: without the shape of the workload behind it, it is neither checkable nor comparable.
+
+### Who this is for, and what it protects against
+
+MODEC-CE serves whoever **has to defend a cost figure to someone else**, not whoever merely wants a smaller bill:
+
+- People who **charge** for a cost optimisation and today hand over a spreadsheet they made themselves.
+- People who **buy** that optimisation and have no way to audit the figure they are shown.
+- People who **publish** a cost result and need someone else to reproduce it.
+- People who **compare** providers or configurations and need the comparison not to rest on their word.
+
+The threat model, stated plainly: **whoever has an incentive to inflate a savings measurement is usually whoever is being paid for achieving it.** Bad faith is not required for the figure to drift — it is enough to pick the favourable workload, the favourable tariff slot, or to drop the run that came out badly. A hashed chain prevents none of that by itself, but it does record **what was measured, in what order, at what tariff, and what could not be measured**, so the argument stops being about the good faith of whoever presents the number.
+
+What it does **not** do is in [SECURITY.md](SECURITY.md): without a key it proves integrity, not authorship; without an external anchor a full rewrite is undetectable; and it cannot tell you whether the measured workload resembles yours. For that last one the answer is not to trust this table, but to run the pilot on your own workload.
+
+### Where the patterns come from
+
+Two behaviours in this repository are not improvised. They come from the author's **PESD structural-pattern** framework, and both are implemented here in the open:
+
+- **P1, chained sealing.** Each record carries the previous record's digest, so ordering is part of what is sealed (`modec_ce/nucleo.py`). The repository ships its own independent minimal chain and uses the PESD core only when it happens to be available.
+- **P2, presence sentinel.** A datum that does not arrive is never replaced by a default: it is marked ABSENT and the process stops (`modec_ce/evidencia.py`). It governs both the provider's usage fields and the seal's own provenance fields, which stay `null` and declared ABSENT when they cannot be obtained.
+
+Both can be read, run and attacked inside this repository with no access to anything else: the test suite includes the case where P2 halts a run, and the case where a chain rewritten without signatures is rejected.
+
 ## Real pilot: DeepSeek, 2026-11-21
 
 | | Baseline (`ingenua_rol`: each agent's prompt starts with its role) | MODEC-CE (`modec`: most stable content first) |

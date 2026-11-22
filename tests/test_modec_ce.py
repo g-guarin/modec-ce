@@ -377,6 +377,31 @@ class CadenaMinimaTests(unittest.TestCase):
         self.assertTrue(any("SIN CLAVE" in x for x in limites), limites)
 
 
+class TablaSalidaTests(unittest.TestCase):
+    """La tabla del README que muestra cómo cae el ahorro al alargar la salida es el argumento
+    central del posicionamiento del repositorio. Si se desfasa del código, el repositorio estaría
+    haciendo exactamente lo que critica: publicar una cifra que nadie puede reproducir."""
+
+    RUTA = Path(__file__).resolve().parents[1] / "README.md"
+
+    def test_la_tabla_del_readme_coincide_con_el_codigo(self):
+        texto = self.RUTA.read_text(encoding="utf-8")
+        bloque = texto.split("<!-- SALIDA -->")[1].split("<!-- /SALIDA -->")[0]
+        for fila in simulacion.sensibilidad_salida()["filas"]:
+            salida = f"{fila['salida_por_llamada']:,}".replace(",", " ")
+            ahorro = f"{100 * fila['ahorro']:.1f}".replace(".", ",")
+            entrada = f"{round(100 * fila['entrada_en_la_factura'])}"
+            self.assertIn(f"| {ahorro} % | {entrada} % |", bloque,
+                          f"la fila de salida={salida} no coincide con el código")
+
+    def test_el_ahorro_cae_al_alargar_la_salida(self):
+        filas = simulacion.sensibilidad_salida()["filas"]
+        ahorros = [f["ahorro"] for f in filas]
+        self.assertEqual(ahorros, sorted(ahorros, reverse=True))
+        self.assertGreater(ahorros[0], 0.6)
+        self.assertLess(ahorros[-1], 0.2)
+
+
 class CitacionTests(unittest.TestCase):
     RUTA = Path(__file__).resolve().parents[1] / "CITATION.cff"
 

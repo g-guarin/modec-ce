@@ -8,8 +8,17 @@ from typing import Any, Mapping, Sequence
 from . import __version__
 
 REPO = "https://github.com/g-guarin/modec-ce"
+SITIO = "https://g-guarin.github.io/modec-ce/"
 AUTOR = "Giovany Guarín Ramírez"
 LICENCIA = "Apache-2.0"
+
+# Lo que ve quien comparte el enlace antes de abrirlo. Dice para qué sirve y para quién,
+# no solo qué mide: un buscador o una previsualización no leen el cuerpo de la página.
+DESCRIPCION = ("Medición sellada y verificable por terceros del ahorro de costo al disponer los prompts "
+               "para el caché de prefijos en orquestación multiagente sobre LLM. Para quien debe sostener "
+               "una cifra de costo ante otro.")
+DESCRIPCION_OG = ("No una forma nueva de ahorrar, sino una forma de demostrar cuánto se ahorró, "
+                  "que un tercero puede comprobar sin instalar nada.")
 
 ETIQUETAS = {
     "ingenua_volatil": "Ingenua · metadatos arriba",
@@ -31,6 +40,7 @@ th{color:var(--suave);font-weight:600}.barra{height:12px;border-radius:3px;backg
 code{font-size:13px}
 a{color:var(--a)}
 .meta{color:var(--suave);font-size:13px;margin:0 0 18px;padding-bottom:14px;border-bottom:1px solid var(--borde)}
+.tesis{font-size:14.5px;line-height:1.55;margin:0 0 22px;padding:14px 16px;border-left:3px solid var(--a);background:var(--fondo);border-radius:0 6px 6px 0}
 .meta b{color:var(--texto);font-weight:600}
 pre{background:var(--fondo);border:1px solid var(--borde);border-radius:6px;padding:8px 10px;overflow-x:auto;font-size:12.5px;margin:8px 0 0}
 """
@@ -123,13 +133,24 @@ def generar_html(simulacion: Mapping[str, Any], pilotos: Sequence[Mapping[str, A
     advert = "".join(f"<li>{html.escape(a)}</li>" for a in simulacion["advertencias"])
     return f"""<!doctype html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>MODEC-CE · informe</title>
+<meta name="description" content="{html.escape(DESCRIPCION)}">
+<meta name="author" content="{html.escape(AUTOR)}">
+<meta property="og:title" content="MODEC-CE · costo y evidencia">
+<meta property="og:description" content="{html.escape(DESCRIPCION_OG)}">
+<meta property="og:type" content="website"><meta property="og:url" content="{SITIO}">
 <style>{_CSS}</style></head><body><main>
 <h1>MODEC-CE · costo y evidencia</h1>
 <p class="meta"><b>{html.escape(AUTOR)}</b> · versión {html.escape(__version__)} · licencia {html.escape(LICENCIA)} ·
 <a href="{REPO}">código fuente</a> · <a href="{REPO}/tree/main/evidencia">bitácoras de evidencia</a> ·
-<a href="{REPO}/blob/main/SECURITY.md">límites declarados</a><br>
+<a href="{REPO}/blob/main/SECURITY.md">modelo de amenaza y límites</a><br>
 Informe generado por el propio programa a partir de los datos del repositorio. Las cifras de simulación son
 estimaciones fuera de línea; las de los pilotos provienen del uso informado por el proveedor.</p>
+<p class="tesis">Ordenar el prompt para aprovechar el caché del proveedor es práctica recomendada y no se
+propone aquí como novedad. <b>Lo que MODEC-CE aporta es que la medición quede sellada y la pueda comprobar un
+tercero</b>, con cada cifra marcada como estimada, medida o derivada, y con lo que no se pudo medir declarado
+en vez de contado como cero. Está dirigido a quien debe sostener una cifra de costo ante otro: quien la cobra,
+quien la compra, quien la audita o quien la publica. El ahorro depende tanto de la forma de la carga que un
+porcentaje ajeno no sirve para decidir: lo que se ofrece es el procedimiento para medir el propio.</p>
 <p>Misma carga multiagente MODEC ({simulacion['carga']['pasos']} pasos, orquestador + {len(simulacion['carga']['agentes'])} agentes).
 Las disposiciones comparten exactamente el mismo contenido: {'verificado' if simulacion['contenido_identico_entre_disposiciones'] else 'NO verificado'}.</p>
 <div class="kpis">

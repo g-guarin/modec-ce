@@ -7,6 +7,25 @@ No la describa en una incidencia pública. Use el reporte privado de GitHub (pes
 - la garantía que se rompe (integridad de la cadena, fallo cerrado, fuga de claves o de contenido);
 - un caso mínimo, sin claves reales.
 
+## Modelo de amenaza
+
+Quien tiene incentivo para inflar una medición de ahorro es, normalmente, **quien cobra por haberla conseguido**: una consultoría que factura una optimización, un proveedor que anuncia una reducción de gasto, un autor que publica una cifra. No hace falta mala fe para que el número se desvíe —basta elegir la carga favorable, la franja tarifaria favorable, o descartar la corrida que salió mal—, y la parte que recibe la cifra hoy no tiene forma de auditarla.
+
+Ese es el adversario para el que se construyó la cadena de evidencia, y conviene ser explícito sobre qué encarece y qué no:
+
+| Manipulación | ¿La detecta? | Cómo |
+|---|---|---|
+| Alterar una medición ya registrada | Sí | El digest del registro deja de coincidir |
+| Borrar una corrida desfavorable | Sí | La secuencia tiene un salto y el enlace `hash_previo` se rompe |
+| Reordenar registros | Sí | El orden forma parte de lo sellado |
+| Añadir registros al final | Solo con ancla externa | Sin ancla, la cola no está acotada |
+| Reescribir la bitácora entera y recalcular todo | Solo con clave HMAC o ancla externa | Sin ninguna de las dos, los digest son recalculables por cualquiera |
+| Suplantar al firmante | Solo con clave HMAC, en modo estricto | Ver más abajo |
+| Contar como cero un dato que el proveedor no informó | Sí | P2: queda AUSENTE y la corrida se detiene |
+| Elegir una carga o una tarifa favorables | **No** | La bitácora las registra, no las juzga |
+
+La última fila es la importante y no se resuelve con criptografía: **MODEC-CE no puede decidir si la carga medida se parece a la suya**. Lo que hace es dejar registrado con qué carga y con qué tarifa se midió, para que usted pueda juzgarlo, y permitirle correr el piloto con la suya. Por eso el README publica cómo cambia el ahorro con la forma de la carga en lugar de defender una sola cifra.
+
 ## Límites declarados
 
 - Según el autor, la cadena mínima integrada y el núcleo PESD **no han tenido revisión criptográfica por un especialista**.
