@@ -19,5 +19,12 @@ dist/
 *.pem
 *.secret
 
+# Excepción deliberada: los certificados públicos de la autoridad de sellado de tiempo SÍ se
+# publican junto al ancla. No son secretos —cualquiera los descarga de la autoridad— y si esa
+# autoridad dejara de estar disponible, quien quiera verificar el sello los necesitaría. Sin esta
+# excepción, la regla `*.pem` de arriba los excluiría en silencio.
+!sello/**/*.pem
+!sello/**/*.crt
+
 # Borradores de trabajo locales
 BORRADOR_*.md

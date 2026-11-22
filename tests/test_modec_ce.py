@@ -402,6 +402,27 @@ class TablaSalidaTests(unittest.TestCase):
         self.assertLess(ahorros[-1], 0.2)
 
 
+class GitignoreSelloTests(unittest.TestCase):
+    """La regla `*.pem` excluía en silencio el certificado de la autoridad de sellado, que sí debe
+    publicarse junto al ancla. Un archivo que no llega al repositorio sin decir nada es el tipo de
+    fallo que este proyecto existe para no tener."""
+
+    RAIZ = Path(__file__).resolve().parents[1]
+
+    def _ignorado(self, ruta: str) -> bool:
+        r = subprocess.run(("git", "-C", str(self.RAIZ), "check-ignore", "-q", ruta),
+                           capture_output=True)
+        return r.returncode == 0
+
+    def test_los_certificados_del_sello_se_publican_y_las_claves_no(self):
+        if subprocess.run(("git", "-C", str(self.RAIZ), "rev-parse"), capture_output=True).returncode:
+            self.skipTest("sin repositorio git disponible")
+        for publicable in ("sello/x/cacert.pem", "sello/x/tsa.crt"):
+            self.assertFalse(self._ignorado(publicable), f"{publicable} quedaría fuera del repositorio")
+        for secreto in ("sello/x/privada.key", ".env", "clave.pem"):
+            self.assertTrue(self._ignorado(secreto), f"{secreto} podría publicarse por error")
+
+
 class LatenciaInformeTests(unittest.TestCase):
     """La ficha de latencia mostraba el peor dato de las corridas como si fuera el resultado.
     Elegir el dato desfavorable es el mismo error que elegir el favorable."""
