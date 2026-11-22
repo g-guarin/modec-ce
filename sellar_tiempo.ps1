@@ -93,11 +93,19 @@ Nota "registros: $registros (ultimo: secuencia $secuencia, tipo $tipo)"
 Nota "DIGEST SELLADO: $digest"
 
 # --- 3. Solicitud --------------------------------------------------------------------------
-$tsq = Join-Path $destino 'ancla.tsq'
-$tsr = Join-Path $destino 'ancla.tsr'
+# A partir de aquí se trabaja DENTRO de la carpeta de salida y se le pasan a openssl y curl
+# nombres sueltos, nunca rutas. Motivo: la ruta de este repositorio contiene espacios y
+# paréntesis, y al pasarla a un programa externo llega cortada en el primer espacio —openssl
+# respondió «Could not open file ... C:\Users\Usuario\Desktop\PLATAFOR-MENS»—. Con nombres
+# sueltos el problema no puede darse, venga la carpeta donde venga.
+Push-Location -LiteralPath $destino
+try {
+
+$tsq = 'ancla.tsq'
+$tsr = 'ancla.tsr'
 & $openssl ts -query -digest $digest -sha256 -cert -out $tsq 2>&1 | ForEach-Object { Nota "  openssl: $_" }
 if (-not (Test-Path -LiteralPath $tsq)) { Falla 'no se creó la solicitud'; exit 1 }
-Nota "solicitud: $tsq ($((Get-Item $tsq).Length) bytes)"
+Nota "solicitud: $destino\$tsq ($((Get-Item $tsq).Length) bytes)"
 
 # --- 4. Envío ------------------------------------------------------------------------------
 # -o, nunca ">": la redirección de PowerShell pasa la salida por un filtro de texto y corrompe
@@ -106,7 +114,7 @@ Nota "solicitud: $tsq ($((Get-Item $tsq).Length) bytes)"
     ForEach-Object { Nota "  curl: $_" }
 if (-not (Test-Path -LiteralPath $tsr)) { Falla 'no se recibió respuesta'; exit 1 }
 $bytes = (Get-Item $tsr).Length
-Nota "respuesta: $tsr ($bytes bytes)"
+Nota "respuesta: $destino\$tsr ($bytes bytes)"
 if ($bytes -lt 1000) {
     Falla "la respuesta es demasiado pequeña; probablemente sea un mensaje de error en texto:"
     Nota (Get-Content -LiteralPath $tsr -Raw -ErrorAction SilentlyContinue)
@@ -114,13 +122,13 @@ if ($bytes -lt 1000) {
 }
 
 # --- 5. Certificados -----------------------------------------------------------------------
-$certTsa = Join-Path $destino 'tsa.crt'
-$certCa = Join-Path $destino 'cacert.pem'
+$certTsa = 'tsa.crt'
+$certCa = 'cacert.pem'
 & $curl -sS $UrlCertTsa -o $certTsa 2>&1 | ForEach-Object { Nota "  curl: $_" }
 & $curl -sS $UrlCertCa -o $certCa 2>&1 | ForEach-Object { Nota "  curl: $_" }
 foreach ($c in @($certTsa, $certCa)) {
     if (-not (Test-Path -LiteralPath $c)) { Falla "no se descargó $c"; exit 1 }
-    Nota "certificado: $c ($((Get-Item $c).Length) bytes) sha256=$((Get-FileHash $c -Algorithm SHA256).Hash.ToLower())"
+    Nota "certificado: $destino\$c ($((Get-Item $c).Length) bytes) sha256=$((Get-FileHash $c -Algorithm SHA256).Hash.ToLower())"
 }
 $huella = (Get-FileHash $certTsa -Algorithm SHA256).Hash.ToLower()
 if ($huella -ne $HuellaCertTsa.ToLower()) {
@@ -142,6 +150,8 @@ $detalle = (& $openssl ts -reply -in $tsr -text 2>&1) -join "`n"
 Add-Content -LiteralPath $registro -Value "`n--- openssl ts -reply -text ---`n$detalle" -Encoding utf8
 $instante = ([regex]::Match($detalle, 'Time stamp:\s*(.+)')).Groups[1].Value.Trim()
 Nota "INSTANTE ACREDITADO: $instante"
+
+} finally { Pop-Location }
 
 # --- 7. LEEME para quien verifique ---------------------------------------------------------
 $leeme = @"
