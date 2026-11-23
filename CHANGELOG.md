@@ -167,11 +167,11 @@ Suite de 38 a 50 pruebas.
 - Los certificados de la autoridad se publican junto al sello: si FreeTSA dejara de estar
   disponible, harían falta para verificar.
 
-### La ficha de latencia dejaba de ser honesta al resumir
+### La ficha de latencia resumía con un solo extremo
 
 - El informe titulaba la latencia con «reducción mínima por corrida», es decir, con el peor dato de
-  las tres. Elegir el dato desfavorable es el mismo error que elegir el favorable: ninguno de los
-  dos es la medición, y además contradecía al README, que ya declara que no hay efecto medible.
+  las tres. Un extremo no es la medición, y además contradecía al README, que ya declara que no
+  hay efecto medible.
 - Ahora muestra el rango completo y cuántas corridas salieron mejor (`-7,7 % a 3,1 % · dispersión,
   no efecto · mejor en 2 de 3 corridas`). Dos pruebas lo sostienen: una comprueba `_rango_latencia`
   y otra que la página no vuelva a titular con un solo extremo.
@@ -183,18 +183,16 @@ Suite de 38 a 50 pruebas.
   misma cifra respaldada por evidencia sellada, enumera qué comprueba el cliente en dos minutos y
   qué sigue sin estar probado, y explica por qué debe exigir que se mida su propia carga.
 - Dos pruebas lo sostienen: una comprueba que cada cifra del documento sale de `resumen.json` de la
-  bitácora publicada, y otra que el documento declara que el escenario es ilustrativo. Un informe
-  de ejemplo que no se declara como tal es un registro fabricado, y este repositorio no publica eso.
+  bitácora publicada, y otra que el documento declara que el escenario es ilustrativo.
 - Enlazado desde ambos README.
 
 ### Posicionamiento: qué resuelve esto que la documentación del proveedor no resuelve
 
-El repositorio exponía bien QUÉ mide y mal PARA QUÉ sirve. Montaba un aparato de evidencia sin
-declarar nunca contra qué protege, lo que invita a leerlo como sobre-ingeniería.
+El repositorio exponía qué mide, pero no contra qué protege.
 
 - **Modelo de amenaza declarado** en SECURITY.md, con una tabla de qué manipulación detecta la
-  cadena y cuál no. La fila que importa es la que dice que NO: elegir una carga o una tarifa
-  favorables no lo detecta nada, y eso no se arregla con criptografía.
+  cadena y cuál no. Incluye la fila negativa: elegir una carga o una tarifa favorables no lo
+  detecta nada.
 - **Para quién es**, en ambos README: quien debe sostener una cifra de costo ante otro —consultoría,
   compras, auditoría, publicación—, no quien solo quiere una factura menor. La técnica de disposición
   es práctica recomendada por los proveedores y no se propone como novedad; lo que se propone es que

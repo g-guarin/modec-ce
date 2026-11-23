@@ -11,7 +11,7 @@ No la describa en una incidencia pública. Use el reporte privado de GitHub (pes
 
 Quien tiene incentivo para inflar una medición de ahorro es, normalmente, **quien cobra por haberla conseguido**: una consultoría que factura una optimización, un proveedor que anuncia una reducción de gasto, un autor que publica una cifra. No hace falta mala fe para que el número se desvíe —basta elegir la carga favorable, la franja tarifaria favorable, o descartar la corrida que salió mal—, y la parte que recibe la cifra hoy no tiene forma de auditarla.
 
-Ese es el adversario para el que se construyó la cadena de evidencia, y conviene ser explícito sobre qué encarece y qué no:
+Ese es el adversario para el que se construyó la cadena de evidencia. Qué encarece y qué no:
 
 | Manipulación | ¿La detecta? | Cómo |
 |---|---|---|
@@ -24,7 +24,7 @@ Ese es el adversario para el que se construyó la cadena de evidencia, y convien
 | Contar como cero un dato que el proveedor no informó | Sí | P2: queda AUSENTE y la corrida se detiene |
 | Elegir una carga o una tarifa favorables | **No** | La bitácora las registra, no las juzga |
 
-La última fila es la importante y no se resuelve con criptografía: **MODEC-CE no puede decidir si la carga medida se parece a la suya**. Lo que hace es dejar registrado con qué carga y con qué tarifa se midió, para que usted pueda juzgarlo, y permitirle correr el piloto con la suya. Por eso el README publica cómo cambia el ahorro con la forma de la carga en lugar de defender una sola cifra.
+La última fila no se resuelve con criptografía: **MODEC-CE no puede decidir si la carga medida se parece a la suya**. Deja registrado con qué carga y con qué tarifa se midió, y permite correr el piloto con la suya. El README publica cómo cambia el ahorro según la forma de la carga.
 
 ## Límites declarados
 
