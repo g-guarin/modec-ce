@@ -14,6 +14,15 @@ repository-code: "https://github.com/g-guarin/modec-ce"
 url: "https://g-guarin.github.io/modec-ce/"
 license: Apache-2.0
 version: 0.3.0
+date-released: 2026-11-23
+doi: 10.5281/zenodo.24458219
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.24458219
+    description: "DOI de concepto: resuelve siempre a la version mas reciente"
+  - type: doi
+    value: 10.5281/zenodo.24458220
+    description: "DOI de la version 0.3.0"
 abstract: >-
   MODEC-CE no propone una forma nueva de abaratar el uso de modelos de lenguaje: propone una forma
   de DEMOSTRAR cuánto se abarató, de modo que un tercero pueda comprobarlo. Mide el ahorro de
@@ -42,6 +51,5 @@ keywords:
   - large language models
   - FinOps
   - LLMOps
-# Sin `date-released` mientras 0.3.0 no esté publicada como Release.
 # Sin correo: el proyecto enruta el contacto por el reporte privado de GitHub (ver CODE_OF_CONDUCT.md).
-# Sin DOI: se añadirá en `identifiers` cuando exista el archivo en Zenodo.
+# El DOI de cabecera es el de concepto, para que una cita sin version resuelva a la ultima.

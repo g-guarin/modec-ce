@@ -3,6 +3,7 @@
 [![Tests](https://github.com/g-guarin/modec-ce/actions/workflows/pruebas.yml/badge.svg)](https://github.com/g-guarin/modec-ce/actions/workflows/pruebas.yml)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24458219.svg)](https://doi.org/10.5281/zenodo.24458219)
 
 > English summary. The full documentation is in Spanish: [README.md](README.md).
 >

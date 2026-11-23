@@ -3,6 +3,7 @@
 [![Pruebas](https://github.com/g-guarin/modec-ce/actions/workflows/pruebas.yml/badge.svg)](https://github.com/g-guarin/modec-ce/actions/workflows/pruebas.yml)
 ![Licencia](https://img.shields.io/badge/licencia-Apache%202.0-blue)
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24458219.svg)](https://doi.org/10.5281/zenodo.24458219)
 
 **English summary:** [README.en.md](README.en.md) · **Demo (informe HTML estático generado por el propio programa, con la simulación y los pilotos publicados):** https://g-guarin.github.io/modec-ce/ · **Cómo se ve una entrega hecha con esto:** [docs/caso-de-uso.md](docs/caso-de-uso.md)
 
