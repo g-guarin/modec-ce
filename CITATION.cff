@@ -6,6 +6,7 @@ authors:
   - given-names: Giovany
     family-names: "Guarín Ramírez"
     alias: g-guarin
+    orcid: "https://orcid.org/0009-0002-3965-0345"
     city: "La Ceja del Tambo"
     region: Antioquia
     country: CO
@@ -41,6 +42,6 @@ keywords:
   - large language models
   - FinOps
   - LLMOps
-# Sin `date-released` mientras 0.2.0 no esté publicada como Release.
+# Sin `date-released` mientras 0.3.0 no esté publicada como Release.
 # Sin correo: el proyecto enruta el contacto por el reporte privado de GitHub (ver CODE_OF_CONDUCT.md).
 # Sin DOI: se añadirá en `identifiers` cuando exista el archivo en Zenodo.
