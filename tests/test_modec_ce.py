@@ -474,11 +474,10 @@ class AnclaTemporalTests(unittest.TestCase):
 
 
 class TarifaDelVerificadorTests(unittest.TestCase):
-    """El verificador independiente leía la tarifa por nombre fijo (`peak`, de DeepSeek). Una
-    bitácora de Anthropic, que la llama `standard`, quedaba rechazada entera: 48 registros marcados
-    como «sin costo utilizable» e `integra: false` sobre una cadena intacta. Lo encontró el primer
-    piloto contra un segundo proveedor. La regla que lo sustituye es la del preflight: de las
-    tarifas presentes se toma SIEMPRE la más cara, porque tomar la barata inflaría el ahorro."""
+    """El verificador leía la tarifa por nombre fijo (`peak`, de DeepSeek), de modo que una bitácora
+    de Anthropic, que la llama `standard`, quedaba rechazada entera: 48 registros «sin costo
+    utilizable» e `integra: false` sobre una cadena intacta. La regla que lo sustituye es la del
+    preflight: de las tarifas presentes se toma siempre la más cara."""
 
     RAIZ = Path(__file__).resolve().parents[1]
 
@@ -512,7 +511,7 @@ class TarifaDelVerificadorTests(unittest.TestCase):
         self.assertEqual(informe_["tarifa_usada"], ["standard"])
 
     def test_entre_varias_tarifas_toma_la_mas_cara(self):
-        """Elegir la barata subiría el ahorro publicado sin que nadie lo note."""
+        """La tarifa barata daría un ahorro publicado mayor; se fija la más cara."""
         v = self._verificador()
         with tempfile.TemporaryDirectory() as tmp:
             carpeta = self._bitacora(Path(tmp), {"offpeak": "0.005", "peak": "0.010"},
@@ -820,9 +819,8 @@ class CifrasReadmeTests(unittest.TestCase):
 
 
 class CifrasDeLosPilotosEnLosReadmeTests(unittest.TestCase):
-    """La tabla de replicación entre proveedores es el resultado más fuerte del repositorio, así que
-    cada cifra suya tiene que salir del `resumen.json` de su bitácora publicada y no de la memoria de
-    quien escribió el documento. Si alguien reordena un piloto o repite una corrida, esto falla."""
+    """Cada cifra de la tabla de replicación tiene que salir del `resumen.json` de su bitácora
+    publicada. Si se reordena un piloto o se repite una corrida sin actualizar el documento, falla."""
 
     PILOTOS = {"evidencia/piloto_deepseek_20261122_135846_5c1d7c": ("39,0 %", "82,5 %", "39.0 %", "82.5 %"),
                "evidencia/piloto_anthropic_20261122_220948_bb1b11": ("38,9 %", "84,0 %", "38.9 %", "84.0 %")}
@@ -843,9 +841,9 @@ class CifrasDeLosPilotosEnLosReadmeTests(unittest.TestCase):
         return {b: sum(xs) / len(xs) for b, xs in acumulado.items()}
 
     def test_la_tabla_de_replicacion_coincide_con_las_bitacoras(self):
-        """Compara la tabla marcada, celda por celda, con lo que dicen los `resumen.json`.
-        Se compara la tabla delimitada y no el documento entero a propósito: un `assertIn` suelto
-        encuentra la cifra en cualquier otra tabla y deja pasar que esta se desvíe."""
+        """Compara la tabla marcada, celda por celda, con los `resumen.json`. Se delimita la tabla
+        porque un `assertIn` sobre el documento entero encuentra la misma cifra en la tabla de
+        detalle y deja pasar una desviación en esta."""
         for nombre, coma in (("README.md", True), ("README.en.md", False)):
             texto = (RAIZ / nombre).read_text(encoding="utf-8")
             if "<!-- TABLA-REPLICACION -->" not in texto:
@@ -866,9 +864,8 @@ class CifrasDeLosPilotosEnLosReadmeTests(unittest.TestCase):
                     self.assertEqual(celdas[3], self._pct(resumen["ahorro_relativo"]["media"], coma), "ahorro")
 
     def test_ningun_readme_presenta_la_latencia_como_un_logro(self):
-        """El valor extremo de una corrida llegó a +83,1 % y el de otra a −99,2 %. Publicar
-        cualquiera de los dos como resultado sería el mismo error en direcciones opuestas: lo que
-        se publica es que no hay efecto, con las dos cifras a la vista."""
+        """El valor extremo de una corrida llegó a +83,1 % y el de otra a −99,2 %. Si el documento
+        cita uno, tiene que citar el otro y las medianas."""
         for nombre in ("README.md", "README.en.md"):
             texto = (RAIZ / nombre).read_text(encoding="utf-8")
             with self.subTest(documento=nombre):
