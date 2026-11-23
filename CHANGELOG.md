@@ -1,6 +1,6 @@
 # Historia de versiones
 
-## 0.3.0 — sin publicar
+## 0.3.0 — 2026-11-23
 
 Primer piloto real contra un segundo proveedor: replicación del efecto y corrección de un
 defecto del verificador independiente.
@@ -87,7 +87,7 @@ Dos corridas del mismo piloto, con media hora de diferencia:
   cite también el desfavorable (−99,2 %), y que la discusión de latencia nombre la mediana.
 - Suite de 66 a 69 pruebas.
 
-## 0.2.0 — sin publicar
+## 0.2.0 — etiquetada el 2026-11-22, sin Release publicada ni DOI
 
 Cierra tres huecos de la 0.1.0 señalados en una auditoría del repositorio público.
 
