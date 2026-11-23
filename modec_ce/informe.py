@@ -103,10 +103,9 @@ def _html_piloto(p: Mapping[str, Any]) -> str:
 def _rango_latencia(latencias: Sequence[float]) -> str:
     """El rango completo, nunca un extremo solo.
 
-    Esta ficha mostraba el peor dato de las corridas como si fuera el resultado. Elegir el dato
-    desfavorable es el mismo error que elegir el favorable: ninguno de los dos es la medición. Con
-    los pilotos publicados, MODEC-CE sale mejor en la mitad de las corridas y peor en la otra
-    mitad, así que lo que los datos sostienen es dispersión, no un efecto en ninguna dirección.
+    Esta ficha mostraba el peor dato de las corridas como si fuera el resultado; un extremo no es
+    la medición. Con los pilotos publicados, MODEC-CE sale mejor en la mitad de las corridas y peor
+    en la otra mitad: los datos sostienen dispersión, no un efecto.
     """
     if not latencias:
         return "—"

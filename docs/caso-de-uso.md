@@ -111,9 +111,8 @@ Qué acaba de verificar, sin fiarse de nadie:
   RFC 3161 de una autoridad independiente lo acredita, y la herramienta comprueba que ese sello
   corresponde a esta cadena y no a otra.
 
-Y, lo más importante para la confianza: **la herramienta declara lo que no puede comprobar**. Los
-límites de la salida no son letra pequeña, son parte del resultado. Fíjese en que sobre el ancla
-dice que no verifica la firma de la autoridad, en vez de callarlo.
+La herramienta declara lo que no puede comprobar: los límites forman parte de su salida. Sobre el
+ancla, por ejemplo, declara que no verifica la firma de la autoridad.
 
 ## Lo que esto sigue sin probar
 

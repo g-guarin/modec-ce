@@ -50,7 +50,7 @@ MODEC-CE sirve a quien **tiene que sostener una cifra de costo ante alguien más
 - Quien **publica** un resultado de costo y necesita que otro pueda reproducirlo.
 - Quien **compara** proveedores o configuraciones y necesita que la comparación no dependa de su palabra.
 
-El modelo de amenaza es ese, y conviene decirlo sin rodeos: **quien tiene incentivo para inflar una medición de ahorro es, normalmente, quien cobra por haberla conseguido.** No hace falta mala fe para que la cifra se desvíe — basta elegir la carga favorable, la franja tarifaria favorable, o descartar la corrida que salió mal. Una bitácora encadenada no impide nada de eso por sí sola, pero sí deja constancia de **qué se midió, en qué orden, con qué tarifa y qué no se pudo medir**, de modo que la discusión deje de ser sobre la buena fe de quien presenta el número.
+El modelo de amenaza es ese: **quien tiene incentivo para inflar una medición de ahorro es, normalmente, quien cobra por haberla conseguido.** No hace falta mala fe para que la cifra se desvíe — basta elegir la carga favorable, la franja tarifaria favorable, o descartar la corrida que salió mal. Una bitácora encadenada no impide nada de eso por sí sola, pero sí deja constancia de **qué se midió, en qué orden, con qué tarifa y qué no se pudo medir**, de modo que la discusión deje de ser sobre la buena fe de quien presenta el número.
 
 Contra eso protege cada pieza, y contra nada más:
 
