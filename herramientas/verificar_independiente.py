@@ -110,6 +110,7 @@ def verificar(carpeta: Path, clave: bytes | None = None, key_id: str = KEY_ID_PO
         anterior = r.get("digest")
 
     costos: dict[tuple, Decimal] = defaultdict(Decimal)
+    tarifas: set[str] = set()
     llamadas = 0
     for i, r in enumerate(registros):
         p = r.get("payload") or {}
@@ -117,7 +118,14 @@ def verificar(carpeta: Path, clave: bytes | None = None, key_id: str = KEY_ID_PO
             continue
         llamadas += 1
         try:                     # un registro malformado se reporta como fallo, no se propaga como excepción
-            costos[(str(p["corrida"]), p["brazo"])] += Decimal(p["costos_usd"]["peak"])
+            # La tarifa NO se busca por nombre: cada proveedor usa los suyos (DeepSeek `peak` y
+            # `offpeak`, Anthropic `standard`). Fijar uno dejaba esta herramienta atada a DeepSeek y
+            # hacía que rechazara una cadena válida de otro proveedor. Se toma siempre la MÁS CARA de
+            # las presentes, que es el criterio del preflight: tomar la barata inflaría el ahorro.
+            opciones = {k: Decimal(v) for k, v in (p["costos_usd"] or {}).items()}
+            nombre = max(sorted(opciones), key=lambda k: opciones[k])   # empate: el primero alfabético
+            tarifas.add(nombre)
+            costos[(str(p["corrida"]), p["brazo"])] += opciones[nombre]
         except (KeyError, TypeError, ArithmeticError, ValueError):
             fallos.append(f"registro {i}: LLAMADA sin corrida, brazo o costo utilizable")
 
@@ -145,6 +153,10 @@ def verificar(carpeta: Path, clave: bytes | None = None, key_id: str = KEY_ID_PO
         limites.append("SIN FECHA EN EL SELLO: esta bitácora no declara cuándo se produjo")
     if not plan.get("commit"):
         limites.append("SIN COMMIT EN EL SELLO: esta bitácora no declara con qué versión del código se produjo")
+    if tarifas:
+        limites.append("TARIFA: el ahorro se recalcula con la más cara de cada registro ("
+                       + ", ".join(sorted(tarifas)) + "); con otra tarifa del mismo proveedor el "
+                       "ahorro cambia, y la bitácora no juzga cuál le corresponde a usted")
 
     return {
         "registros": len(registros),
@@ -155,6 +167,7 @@ def verificar(carpeta: Path, clave: bytes | None = None, key_id: str = KEY_ID_PO
         "commit_declarado": plan.get("commit"),
         "arbol_limpio": plan.get("arbol_limpio"),
         "autenticidad": "HMAC_VERIFICADO" if clave is not None else "NO_EVALUADA (sin clave)",
+        "tarifa_usada": sorted(tarifas),
         "ahorro_recalculado_por_corrida": ahorros,
         "integra": not fallos and bool(registros),
         "fallos": fallos,

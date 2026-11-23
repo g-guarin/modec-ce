@@ -473,6 +473,77 @@ class AnclaTemporalTests(unittest.TestCase):
             self.assertTrue(any("no es su ancla" in x for x in informe_["limites"]))
 
 
+class TarifaDelVerificadorTests(unittest.TestCase):
+    """El verificador independiente leía la tarifa por nombre fijo (`peak`, de DeepSeek). Una
+    bitácora de Anthropic, que la llama `standard`, quedaba rechazada entera: 48 registros marcados
+    como «sin costo utilizable» e `integra: false` sobre una cadena intacta. Lo encontró el primer
+    piloto contra un segundo proveedor. La regla que lo sustituye es la del preflight: de las
+    tarifas presentes se toma SIEMPRE la más cara, porque tomar la barata inflaría el ahorro."""
+
+    RAIZ = Path(__file__).resolve().parents[1]
+
+    def _verificador(self):
+        import importlib.util
+        ruta = self.RAIZ / "herramientas" / "verificar_independiente.py"
+        spec = importlib.util.spec_from_file_location("verificar_independiente", ruta)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    def _bitacora(self, tmp: Path, tarifas_base: dict, tarifas_modec: dict) -> Path:
+        carpeta = tmp / "evidencia" / "piloto_sintetico"
+        carpeta.mkdir(parents=True)
+        cadena = nucleo.CadenaMinima(None, "modec-ce")
+        lineas, anterior = [], None
+        for brazo, tarifas in (("ingenua_rol", tarifas_base), ("modec", tarifas_modec)):
+            anterior = cadena.sellar({"tipo": "LLAMADA", "corrida": 1, "brazo": brazo,
+                                      "costos_usd": tarifas}, anterior)
+            lineas.append(anterior.a_json())
+        (carpeta / "evidencia.jsonl").write_text("\n".join(lineas) + "\n", encoding="utf-8")
+        return carpeta
+
+    def test_una_tarifa_que_no_se_llama_peak_no_invalida_la_cadena(self):
+        v = self._verificador()
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = self._bitacora(Path(tmp), {"standard": "0.010"}, {"standard": "0.004"})
+            informe_ = v.verificar(carpeta)
+        self.assertEqual(informe_["fallos"], [], "una tarifa con otro nombre no es un registro malformado")
+        self.assertTrue(informe_["integra"])
+        self.assertEqual(informe_["tarifa_usada"], ["standard"])
+
+    def test_entre_varias_tarifas_toma_la_mas_cara(self):
+        """Elegir la barata subiría el ahorro publicado sin que nadie lo note."""
+        v = self._verificador()
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = self._bitacora(Path(tmp), {"offpeak": "0.005", "peak": "0.010"},
+                                     {"offpeak": "0.002", "peak": "0.004"})
+            informe_ = v.verificar(carpeta)
+        self.assertEqual(informe_["tarifa_usada"], ["peak"])
+        # Con `peak` el ahorro sale 1 - 0.004/0.010 = 0.60; con `offpeak`, 1 - 0.002/0.005 = 0.60
+        # también, pero esa coincidencia es del ejemplo: lo que se fija aquí es cuál se eligió.
+        self.assertEqual(informe_["fallos"], [])
+
+    def test_declara_en_los_limites_con_que_tarifa_recalculo(self):
+        v = self._verificador()
+        with tempfile.TemporaryDirectory() as tmp:
+            carpeta = self._bitacora(Path(tmp), {"standard": "0.010"}, {"standard": "0.004"})
+            informe_ = v.verificar(carpeta)
+        self.assertTrue(any(x.startswith("TARIFA:") for x in informe_["limites"]),
+                        "la tarifa elegida cambia el ahorro, así que hay que decir cuál se usó")
+
+    def test_las_bitacoras_publicadas_se_verifican_todas(self):
+        """Ninguna bitácora del repositorio puede quedar rechazada por el nombre de su tarifa."""
+        v = self._verificador()
+        carpetas = sorted((self.RAIZ / "evidencia").glob("piloto_*"))
+        if not carpetas:
+            self.skipTest("sin bitácoras publicadas")
+        for carpeta in carpetas:
+            with self.subTest(bitacora=carpeta.name):
+                informe_ = v.verificar(carpeta)
+                self.assertEqual(informe_["fallos"], [])
+                self.assertTrue(informe_["integra"])
+
+
 class DigestFinalTests(unittest.TestCase):
     """El valor que se sella con el ancla temporal. Vivía como `python -c "..."` dentro del script
     de PowerShell, que elimina las comillas dobles al pasar argumentos a un programa externo: el

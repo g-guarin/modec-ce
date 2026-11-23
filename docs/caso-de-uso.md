@@ -83,12 +83,14 @@ Salida:
   "commit_declarado": "32ad580f09912f32242e3a1510d1e8985b07df53",
   "arbol_limpio": true,
   "autenticidad": "NO_EVALUADA (sin clave)",
+  "tarifa_usada": ["peak"],
   "ahorro_recalculado_por_corrida": {"1": 0.6528, "2": 0.6539, "3": 0.6531},
   "integra": true,
   "fallos": [],
   "limites": [
     "ANCLA PRESENTE en piloto_deepseek_20261122_135846_5c1d7c: contiene el digest final de esta cadena, pero la FIRMA de la autoridad no se comprueba aquí. Compruébela con: openssl ts -verify -in ancla.tsr -queryfile ancla.tsq -CAfile cacert.pem -untrusted tsa.crt",
-    "SIN CLAVE HMAC: integridad, no autoría"
+    "SIN CLAVE HMAC: integridad, no autoría",
+    "TARIFA: el ahorro se recalcula con la más cara de cada registro (peak); con otra tarifa del mismo proveedor el ahorro cambia, y la bitácora no juzga cuál le corresponde a usted"
   ]
 }
 ```
