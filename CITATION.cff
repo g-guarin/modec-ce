@@ -12,7 +12,7 @@ authors:
 repository-code: "https://github.com/g-guarin/modec-ce"
 url: "https://g-guarin.github.io/modec-ce/"
 license: Apache-2.0
-version: 0.2.0
+version: 0.3.0
 abstract: >-
   MODEC-CE no propone una forma nueva de abaratar el uso de modelos de lenguaje: propone una forma
   de DEMOSTRAR cuánto se abarató, de modo que un tercero pueda comprobarlo. Mide el ahorro de

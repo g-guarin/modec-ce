@@ -1,0 +1,33 @@
+﻿Ancla temporal RFC 3161 de la bitácora evidencia\piloto_anthropic_20261122_220948_bb1b11
+
+Valor sellado: digest SHA-256 del último registro de la cadena (secuencia 49, tipo RESUMEN),
+que encadena a todos los anteriores:
+
+    f0ba27962c3f69c5a448c904ccfb2a74d35dad1363ac362c8d16f67be836183b
+
+Autoridad : FreeTSA (https://freetsa.org/tsr)
+Sellado el: Nov 23 03:22:02 2026 GMT
+
+QUÉ ACREDITA: que ese digest, y por tanto la cadena completa que lo produce, existía a más tardar
+en ese instante. NO acredita autoría, NO acredita que el contenido sea cierto, y NO acredita la
+fecha declarada dentro de la bitácora, que la pone el equipo que ejecutó el piloto.
+
+Los certificados tsa.crt y cacert.pem se publican junto al sello a propósito: si FreeTSA dejara de
+estar disponible, quien quiera verificar los necesitaría. Son certificados públicos, no secretos.
+Sus huellas SHA-256 están en registro_sellado.txt, junto a la fecha en que se descargaron.
+
+CÓMO VERIFICARLO (necesita openssl):
+
+    openssl ts -verify -in ancla.tsr -queryfile ancla.tsq -CAfile cacert.pem -untrusted tsa.crt
+
+Debe responder exactamente: Verification: OK
+
+Y para comprobar que el valor sellado es el de esta bitácora, y no el de otra, desde la raíz del
+repositorio:
+
+    python herramientas/digest_final.py evidencia/piloto_anthropic_20261122_220948_bb1b11
+    openssl ts -query -in sello/piloto_anthropic_20261122_220948_bb1b11/ancla.tsq -text
+
+El valor que imprime el primero debe coincidir con el bloque "Message data" de la salida del
+segundo. openssl lo muestra como volcado hexadecimal repartido en varias líneas y con espacios,
+así que hay que compararlo quitando los espacios, no línea a línea.

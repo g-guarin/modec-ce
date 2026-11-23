@@ -819,6 +819,79 @@ class CifrasReadmeTests(unittest.TestCase):
             self.assertIn(cifra.replace(".", ","), readme, cifra)
 
 
+class CifrasDeLosPilotosEnLosReadmeTests(unittest.TestCase):
+    """La tabla de replicación entre proveedores es el resultado más fuerte del repositorio, así que
+    cada cifra suya tiene que salir del `resumen.json` de su bitácora publicada y no de la memoria de
+    quien escribió el documento. Si alguien reordena un piloto o repite una corrida, esto falla."""
+
+    PILOTOS = {"evidencia/piloto_deepseek_20261122_135846_5c1d7c": ("39,0 %", "82,5 %", "39.0 %", "82.5 %"),
+               "evidencia/piloto_anthropic_20261122_220948_bb1b11": ("38,9 %", "84,0 %", "38.9 %", "84.0 %")}
+
+    @staticmethod
+    def _pct(x: float, coma: bool = True) -> str:
+        """Como lo escriben los documentos: una decimal y espacio antes del signo."""
+        s = f"{x:.1%}".replace("%", " %")
+        return s.replace(".", ",") if coma else s
+
+    def _tasas(self, carpeta: Path) -> dict[str, float]:
+        """Media de la tasa de acierto de cada brazo sobre las corridas de esa bitácora."""
+        resumen = json.loads((carpeta / "resumen.json").read_text(encoding="utf-8"))
+        acumulado: dict[str, list[float]] = {}
+        for datos in resumen["corridas"].values():
+            for brazo, v in datos["brazos"].items():
+                acumulado.setdefault(brazo, []).append(v["tasa_acierto"])
+        return {b: sum(xs) / len(xs) for b, xs in acumulado.items()}
+
+    def test_la_tabla_de_replicacion_coincide_con_las_bitacoras(self):
+        """Compara la tabla marcada, celda por celda, con lo que dicen los `resumen.json`.
+        Se compara la tabla delimitada y no el documento entero a propósito: un `assertIn` suelto
+        encuentra la cifra en cualquier otra tabla y deja pasar que esta se desvíe."""
+        for nombre, coma in (("README.md", True), ("README.en.md", False)):
+            texto = (RAIZ / nombre).read_text(encoding="utf-8")
+            if "<!-- TABLA-REPLICACION -->" not in texto:
+                self.skipTest(f"{nombre} sin tabla marcada")
+            bloque = texto.split("<!-- TABLA-REPLICACION -->")[1].split("<!-- /TABLA-REPLICACION -->")[0]
+            filas = [x for x in bloque.strip().splitlines() if x.startswith("|")][2:]
+            self.assertEqual(len(filas), len(self.PILOTOS), f"{nombre}: la tabla no tiene una fila por piloto")
+            for fila, ruta in zip(filas, self.PILOTOS, strict=True):
+                carpeta = RAIZ / ruta
+                if not (carpeta / "resumen.json").is_file():
+                    self.skipTest(f"sin bitácora publicada en {ruta}")
+                celdas = [c.strip() for c in fila.strip().strip("|").split("|")]
+                tasas = self._tasas(carpeta)
+                resumen = json.loads((carpeta / "resumen.json").read_text(encoding="utf-8"))
+                with self.subTest(documento=nombre, bitacora=carpeta.name):
+                    self.assertEqual(celdas[1], self._pct(tasas["ingenua_rol"], coma), "tasa base")
+                    self.assertEqual(celdas[2], self._pct(tasas["modec"], coma), "tasa modec")
+                    self.assertEqual(celdas[3], self._pct(resumen["ahorro_relativo"]["media"], coma), "ahorro")
+
+    def test_ningun_readme_presenta_la_latencia_como_un_logro(self):
+        """El valor extremo de una corrida llegó a +83,1 % y el de otra a −99,2 %. Publicar
+        cualquiera de los dos como resultado sería el mismo error en direcciones opuestas: lo que
+        se publica es que no hay efecto, con las dos cifras a la vista."""
+        for nombre in ("README.md", "README.en.md"):
+            texto = (RAIZ / nombre).read_text(encoding="utf-8")
+            with self.subTest(documento=nombre):
+                # Si aparece el valor extremo, tiene que aparecer también el contrario.
+                if "83,1 %" in texto or "83.1 %" in texto:
+                    self.assertTrue("99,2 %" in texto or "99.2 %" in texto,
+                                    "se cita el extremo favorable sin el desfavorable")
+                self.assertTrue("mediana" in texto.lower() or "median" in texto.lower(),
+                                "la latencia se discute sin nombrar la mediana, que es lo que no arrastra")
+
+    def test_el_ahorro_publicado_de_cada_piloto_sale_de_su_resumen(self):
+        es = (RAIZ / "README.md").read_text(encoding="utf-8")
+        for ruta in self.PILOTOS:
+            carpeta = RAIZ / ruta
+            if not (carpeta / "resumen.json").is_file():
+                self.skipTest(f"sin bitácora publicada en {ruta}")
+            resumen = json.loads((carpeta / "resumen.json").read_text(encoding="utf-8"))
+            media = resumen["ahorro_relativo"]["media"]
+            with self.subTest(bitacora=carpeta.name):
+                self.assertIn(self._pct(media), es,
+                              f"{carpeta.name}: el ahorro medio no aparece en README.md")
+
+
 class EvidenciaPublicadaTests(unittest.TestCase):
     """La bitácora publicada del piloto real se verifica sin el núcleo PESD y detecta alteraciones."""
 

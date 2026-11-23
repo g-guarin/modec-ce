@@ -1,0 +1,154 @@
+{
+  "brazos": {
+    "ingenua_rol": {
+      "llamadas_medidas": 24,
+      "tokens_acierto": 108872,
+      "tokens_escritura": 108872,
+      "tokens_fallo": 62180,
+      "tasa_acierto": 0.3889,
+      "costos_usd": {
+        "standard": "0.021683720"
+      },
+      "latencia_mediana_ms": 1589.0500000000002,
+      "latencia_total_ms": 39854.7,
+      "prefill_total_ms": null
+    },
+    "modec": {
+      "llamadas_medidas": 24,
+      "tokens_acierto": 235183,
+      "tokens_escritura": 42229,
+      "tokens_fallo": 2528,
+      "tasa_acierto": 0.8401,
+      "costos_usd": {
+        "standard": "0.008651255"
+      },
+      "latencia_mediana_ms": 1584.8,
+      "latencia_total_ms": 52907.2,
+      "prefill_total_ms": null
+    }
+  },
+  "corridas": {
+    "1": {
+      "brazos": {
+        "ingenua_rol": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 36292,
+          "tokens_escritura": 36292,
+          "tokens_fallo": 20732,
+          "tasa_acierto": 0.3889,
+          "costos_usd": {
+            "standard": "0.007228620"
+          },
+          "latencia_mediana_ms": 1698.25,
+          "latencia_total_ms": 13594.0,
+          "prefill_total_ms": null
+        },
+        "modec": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 78399,
+          "tokens_escritura": 14077,
+          "tokens_fallo": 848,
+          "tasa_acierto": 0.8401,
+          "costos_usd": {
+            "standard": "0.002884415"
+          },
+          "latencia_mediana_ms": 1609.6,
+          "latencia_total_ms": 14867.2,
+          "prefill_total_ms": null
+        }
+      },
+      "ahorro_relativo": 0.601,
+      "reduccion_latencia": -0.0937
+    },
+    "2": {
+      "brazos": {
+        "ingenua_rol": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 36288,
+          "tokens_escritura": 36288,
+          "tokens_fallo": 20716,
+          "tasa_acierto": 0.389,
+          "costos_usd": {
+            "standard": "0.007226480"
+          },
+          "latencia_mediana_ms": 1584.45,
+          "latencia_total_ms": 12777.5,
+          "prefill_total_ms": null
+        },
+        "modec": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 78392,
+          "tokens_escritura": 14076,
+          "tokens_fallo": 832,
+          "tasa_acierto": 0.8402,
+          "costos_usd": {
+            "standard": "0.002882620"
+          },
+          "latencia_mediana_ms": 1628.65,
+          "latencia_total_ms": 25454.3,
+          "prefill_total_ms": null
+        }
+      },
+      "ahorro_relativo": 0.6011,
+      "reduccion_latencia": -0.9921
+    },
+    "3": {
+      "brazos": {
+        "ingenua_rol": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 36292,
+          "tokens_escritura": 36292,
+          "tokens_fallo": 20732,
+          "tasa_acierto": 0.3889,
+          "costos_usd": {
+            "standard": "0.007228620"
+          },
+          "latencia_mediana_ms": 1572.0500000000002,
+          "latencia_total_ms": 13483.2,
+          "prefill_total_ms": null
+        },
+        "modec": {
+          "llamadas_medidas": 8,
+          "tokens_acierto": 78392,
+          "tokens_escritura": 14076,
+          "tokens_fallo": 848,
+          "tasa_acierto": 0.8401,
+          "costos_usd": {
+            "standard": "0.002884220"
+          },
+          "latencia_mediana_ms": 1555.65,
+          "latencia_total_ms": 12585.7,
+          "prefill_total_ms": null
+        }
+      },
+      "ahorro_relativo": 0.601,
+      "reduccion_latencia": 0.0666
+    }
+  },
+  "ahorro_relativo": {
+    "media": 0.601,
+    "min": 0.601,
+    "max": 0.6011,
+    "corridas_validas": 3
+  },
+  "criterio_30pct_todas": true,
+  "procedencia": "MEDIDO (usage del proveedor) + costo DERIVADO de tarifa DECLARADA",
+  "proveedor": "anthropic",
+  "modelo": "claude-haiku-5-5",
+  "detenido": null,
+  "fecha_utc_cierre": "2026-11-23T03:12:35Z",
+  "verificacion": {
+    "motor_evidencia": "modec-ce-cadena-minima-v1",
+    "autenticidad": "NINGUNA (sin clave: solo integridad)",
+    "registros": 50,
+    "integra": true,
+    "estado_minimo": null,
+    "motivos": [],
+    "limites": [
+      "SIN ANCLA: el truncamiento de la cola y la reescritura total no son detectables",
+      "CADENA MÍNIMA: integridad genérica, sin el motor de evidencia opcional del núcleo propietario",
+      "SIN CLAVE: solo integridad. La clave es la declaración de qué firma se espera; sin entregarla, una cadena a la que se le quitaron las firmas verifica igual"
+    ],
+    "nucleo_pesd": null
+  }
+}
