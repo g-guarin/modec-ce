@@ -622,8 +622,8 @@ class GitignoreSelloTests(unittest.TestCase):
 
 
 class LatenciaInformeTests(unittest.TestCase):
-    """La ficha de latencia mostraba el peor dato de las corridas como si fuera el resultado.
-    Elegir el dato desfavorable es el mismo error que elegir el favorable."""
+    """La ficha de latencia mostraba el peor dato de las corridas como si fuera el resultado;
+    un extremo no es la medición."""
 
     def test_muestra_el_rango_y_no_un_extremo(self):
         self.assertEqual(informe._rango_latencia([-0.077, 0.029, 0.031]), "-7.7% a 3.1%")
