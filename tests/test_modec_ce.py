@@ -543,6 +543,67 @@ class TarifaDelVerificadorTests(unittest.TestCase):
                 self.assertTrue(informe_["integra"])
 
 
+class DigestDocumentoTests(unittest.TestCase):
+    """Sellar un documento por sus bytes valdría para una sola copia: Windows escribe CRLF y Git
+    guarda LF. Se digesta la forma canónica —sin BOM y con LF— para que el sello sirva igual sobre
+    la copia local y sobre la que descarga un tercero."""
+
+    RAIZ = Path(__file__).resolve().parents[1]
+    HERRAMIENTA = RAIZ / "herramientas" / "digest_documento.py"
+
+    def _digest(self, ruta: Path, *extra: str) -> str:
+        r = subprocess.run([sys.executable, "-I", str(self.HERRAMIENTA), str(ruta), *extra],
+                           capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return r.stdout.strip()
+
+    def test_el_digest_no_cambia_con_los_finales_de_linea_ni_el_BOM(self):
+        base = b"# Titulo\n\nUna linea con tilde: medicion.\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            t = Path(tmp)
+            variantes = {"lf": base,
+                         "crlf": base.replace(b"\n", b"\r\n"),
+                         "bom_crlf": b"\xef\xbb\xbf" + base.replace(b"\n", b"\r\n"),
+                         "cr": base.replace(b"\n", b"\r")}
+            digests = {}
+            for nombre, datos in variantes.items():
+                p = t / f"{nombre}.md"
+                p.write_bytes(datos)
+                digests[nombre] = self._digest(p)
+            self.assertEqual(len(set(digests.values())), 1,
+                             f"la forma canónica no es estable: {digests}")
+
+    def test_un_cambio_real_de_contenido_si_cambia_el_digest(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            a, b = Path(tmp) / "a.md", Path(tmp) / "b.md"
+            a.write_bytes(b"texto\n")
+            b.write_bytes(b"texto.\n")
+            self.assertNotEqual(self._digest(a), self._digest(b))
+
+    def test_coincide_con_el_calculo_de_una_linea_que_documenta(self):
+        """El docstring publica un equivalente en una línea para quien no quiera usar este archivo."""
+        import hashlib
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "d.md"
+            p.write_bytes(b"\xef\xbb\xbfuno\r\ndos\r\n")
+            crudo = p.read_bytes().removeprefix(b"\xef\xbb\xbf")
+            esperado = hashlib.sha256(crudo.replace(b"\r\n", b"\n").replace(b"\r", b"\n")).hexdigest()
+            self.assertEqual(self._digest(p), esperado)
+
+    def test_un_documento_vacio_se_rechaza_en_vez_de_sellar_nada(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "vacio.md"
+            p.write_bytes(b"")
+            r = subprocess.run([sys.executable, "-I", str(self.HERRAMIENTA), str(p)],
+                               capture_output=True, text=True)
+            self.assertEqual(r.returncode, 1)
+
+    def test_el_script_de_sellado_ofrece_la_opcion_Documento(self):
+        ps1 = (self.RAIZ / "sellar_tiempo.ps1").read_bytes().decode("utf-8-sig")
+        self.assertIn("$Documento", ps1)
+        self.assertIn("digest_documento.py", ps1)
+
+
 class DigestFinalTests(unittest.TestCase):
     """El valor que se sella con el ancla temporal. Vivía como `python -c "..."` dentro del script
     de PowerShell, que elimina las comillas dobles al pasar argumentos a un programa externo: el

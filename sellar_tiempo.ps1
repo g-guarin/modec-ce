@@ -20,9 +20,14 @@
 .EXAMPLE
     .\sellar_tiempo.ps1
     .\sellar_tiempo.ps1 -Bitacora evidencia\piloto_deepseek_20261121
+    .\sellar_tiempo.ps1 -Documento docs\diseno-piloto-supertokens.md
 #>
 param(
     [string]$Bitacora = 'evidencia\piloto_deepseek_20261122_135846_5c1d7c',
+    # Alternativa a -Bitacora: sella un documento de texto por su forma canonica (sin BOM y con
+    # finales de linea LF), no por sus bytes. Sirve para fijar un diseno experimental antes de
+    # ejecutarlo. Si se indica, -Bitacora se ignora.
+    [string]$Documento = '',
     [string]$Tsa = 'https://freetsa.org/tsr',
     [string]$UrlCertTsa = 'https://freetsa.org/files/tsa.crt',
     [string]$UrlCertCa = 'https://freetsa.org/files/cacert.pem',
@@ -36,7 +41,9 @@ param(
 $ErrorActionPreference = 'Continue'
 Set-Location -LiteralPath $PSScriptRoot
 
-$nombre = Split-Path -Leaf $Bitacora
+$esDocumento = -not [string]::IsNullOrWhiteSpace($Documento)
+if ($esDocumento) { $nombre = 'doc-' + [IO.Path]::GetFileNameWithoutExtension($Documento) }
+else              { $nombre = Split-Path -Leaf $Bitacora }
 $destino = Join-Path $PSScriptRoot (Join-Path 'sello' $nombre)
 New-Item -ItemType Directory -Force -Path $destino | Out-Null
 $registro = Join-Path $destino 'registro_sellado.txt'
@@ -75,7 +82,22 @@ $py = 'python'
 if (Get-Command py -ErrorAction SilentlyContinue) { $py = 'py' }
 if ($fallos -gt 0) { Nota 'Faltan herramientas. Se detiene.'; exit 1 }
 
-# --- 2. Digest del último registro ---------------------------------------------------------
+# --- 2. Digest de lo que se sella ----------------------------------------------------------
+if ($esDocumento) {
+    $archivo = Join-Path $PSScriptRoot $Documento
+    if (-not (Test-Path -LiteralPath $archivo)) { Falla "no existe $archivo"; exit 1 }
+    $lector = Join-Path $PSScriptRoot (Join-Path 'herramientas' 'digest_documento.py')
+    if (-not (Test-Path -LiteralPath $lector)) { Falla "no existe $lector"; exit 1 }
+    $salida = (& $py -I $lector $archivo --campos 2>&1) -join ' '
+    if ($LASTEXITCODE -ne 0) { Falla "no se pudo leer el documento: $salida"; exit 1 }
+    $campos = $salida.Trim() -split '\s+'
+    $digest = $campos[3]
+    if ($digest -notmatch '^[0-9a-f]{64}$') { Falla "digest inesperado: $digest"; exit 1 }
+    Nota "documento: $Documento ($($campos[0]) bytes en disco, $($campos[1]) canonicos, $($campos[2]) lineas)"
+    Nota "DIGEST SELLADO: $digest"
+}
+else {
+
 $jsonl = Join-Path $PSScriptRoot (Join-Path $Bitacora 'evidencia.jsonl')
 if (-not (Test-Path -LiteralPath $jsonl)) { Falla "no existe $jsonl"; exit 1 }
 
@@ -91,6 +113,7 @@ $registros, $secuencia, $tipo, $digest = $campos[0], $campos[1], $campos[2], $ca
 if ($digest -notmatch '^[0-9a-f]{64}$') { Falla "digest inesperado: $digest"; exit 1 }
 Nota "registros: $registros (ultimo: secuencia $secuencia, tipo $tipo)"
 Nota "DIGEST SELLADO: $digest"
+}
 
 # --- 3. Solicitud --------------------------------------------------------------------------
 # A partir de aquí se trabaja DENTRO de la carpeta de salida y se le pasan a openssl y curl
