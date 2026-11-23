@@ -67,7 +67,7 @@ Both can be read, run and attacked inside this repository with no access to anyt
 
 ### The effect replicates across two providers that cache differently
 
-This is the result that carries the most weight, and it is not the saving: it is that **the cache-hit rate reproduces almost exactly on two providers with different caching mechanisms**. DeepSeek caches the prefix on its own; Anthropic caches only what the client marks with `cache_control`. Same reordering, same rates:
+DeepSeek caches the prefix on its own; Anthropic caches only what the client marks with `cache_control`. With the same reordering, the hit rates match:
 
 <!-- TABLA-REPLICACION -->
 | Cache-hit rate | `ingenua_rol` | `modec` | Cost saving |
@@ -76,9 +76,9 @@ This is the result that carries the most weight, and it is not the saving: it is
 | **Anthropic** `claude-haiku-5-5` (2026-11-22) | 38.9 % | 84.0 % | 60.1 % |
 <!-- /TABLA-REPLICACION -->
 
-Hit rates landing within one and a half points of each other suggests that what is being measured is **the structure of the prompt**, not a quirk of one vendor. The cost saving does differ (65.3 % vs 60.1 %) because the tariffs differ: Anthropic charges cache writes at 1.25× the input price and DeepSeek does not.
+The two providers' hit rates differ by one and a half points, which places the effect in **the structure of the prompt** rather than in one vendor's caching mechanism. The cost saving does differ (65.3 % vs 60.1 %) because the tariffs differ: Anthropic charges cache writes at 1.25× the input price and DeepSeek does not.
 
-With one provider this was an observation. With two, and with mechanisms that do not resemble each other, it is a replicated result. It is still one synthetic workload: **replicated across providers is not replicated across workloads**, and measuring yours is still your job.
+Scope of the replication: two providers, **one synthetic workload**. Replicated across providers is not replicated across workloads.
 
 ### Detail
 
@@ -100,14 +100,14 @@ With one provider this was an observation. With two, and with mechanisms that do
 
 - 3 runs × 16 calls = 48 calls, all HTTP 200, all usage fields present. Synthetic workload: orchestrator + 3 agents, 2 steps, a corpus generated with the nominal parameter `tokens_corpus` = 3000 (about 5,100 tokens by the project's estimator; DeepSeek billed 5,846 to 8,939 input tokens per call). This is the second real DeepSeek run that day: the first, sealed with another evidence engine that is not published, gave an equivalent result (65.4 % / 65.3 % / 65.4 %).
 - Tokens are **measured** (provider `usage` fields). Cost is **derived** from the tariff declared in `datos/precios.json`; it is not an invoice.
-- **Latency: no measurable effect, and now it can be shown why.** The Anthropic pilot made visible something the DeepSeek latency figures only hinted at: **the per-run total does not measure the method, it measures the worst call.** Two runs of the same pilot, half an hour apart:
+- **Latency: no measurable effect.** The per-run total is dominated by the slowest call, not by the method. Two runs of the same pilot, half an hour apart:
 
   | Run | "Latency reduction" computed over totals | Medians of the 16 calls |
   |---|---|---|
   | Anthropic 21:13, run 1 | **+83.1 %** favouring `modec` | 1,754 ms vs 1,609 ms (+8 %) |
   | Anthropic 22:09, run 2 | **−99.2 %** against `modec` | 1,584 ms vs 1,629 ms (−3 %) |
 
-  In the first, one baseline call stalled for about 63 seconds; in the second it was a `modec` call. The medians, which an outlier cannot drag, stayed between 1,555 and 1,754 ms across both arms of all six runs: −2.8 % to +5.2 %. **A number that swings from +83 % to −99 % depending on which call trips is not an effect.** The measured benefit is cost, not speed — and there is no evidence it costs speed either.
+  In the first, one baseline call stalled for about 63 seconds; in the second, a `modec` call did. The medians stayed between 1,555 and 1,754 ms across both arms of all six runs: −2.8 % to +5.2 %. The measured benefit is cost, not speed — and there is no evidence it costs speed either.
 - The three logs, sealed with the built-in minimal chain, are under [`evidencia/`](evidencia/). They hold fingerprints, counts, latencies and costs only (plus, if a call fails, up to 300 characters of the provider's error message): no prompts, responses or keys.
 
 **Verify it yourself**, with the Python standard library only (no install):
@@ -127,7 +127,7 @@ It recomputes the SHA-256 digest of every record, every chain link and each run'
 | `piloto_deepseek_20261122_135846_5c1d7c` | 22 November 2026, 22:17:24 GMT |
 | `piloto_anthropic_20261122_220948_bb1b11` | 23 November 2026, 03:22:02 GMT |
 
-It attests, to someone who has no reason to take the author's word, that the chain existed no later than that instant — which is what makes a full rewrite detectable. The authority's certificates are published alongside each seal, because they would be needed to check it if that authority ever went away. Both seals were verified on two separate machines, with different operating systems and different OpenSSL versions.
+It attests, to someone who has no reason to take the author's word, that the chain existed no later than that instant, which is what makes a full rewrite detectable. The authority's certificates are published alongside each seal, because they would be needed to check it if that authority ever went away. Both seals were verified on two separate machines, with different operating systems and different OpenSSL versions.
 
 ```bash
 cd sello/piloto_anthropic_20261122_220948_bb1b11
@@ -139,7 +139,7 @@ openssl ts -verify -in ancla.tsr -queryfile ancla.tsq -CAfile cacert.pem -untrus
 **Limits, stated up front**
 - Two providers so far, one synthetic workload. An OpenAI pilot is pending, and the OpenAI and OpenRouter adapters have only been tested with simulated responses.
 - Both logs were sealed without an HMAC key: integrity is checkable, authorship is not.
-- The three logs are not equivalent, and the verifier says so itself rather than leaving it to the reader's goodwill:
+- The three logs are not equivalent, and the verifier states the difference in its output:
 
   | Log | Anchor | Date and commit inside the seal | Clean tree |
   |---|---|---|---|

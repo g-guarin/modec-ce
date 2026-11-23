@@ -2,9 +2,8 @@
 
 ## 0.3.0 — sin publicar
 
-El primer piloto real contra un segundo proveedor. Trajo dos cosas: una replicación que
-antes no se podía afirmar, y un defecto en el verificador que ninguna prueba habría
-encontrado.
+Primer piloto real contra un segundo proveedor: replicación del efecto y corrección de un
+defecto del verificador independiente.
 
 ### El efecto se replica en dos proveedores que cachean de forma distinta
 
@@ -20,11 +19,11 @@ encontrado.
 
 - DeepSeek cachea el prefijo por su cuenta; Anthropic solo cachea lo que el cliente marca con
   `cache_control`. Que las tasas coincidan dentro de punto y medio con mecanismos que no se
-  parecen sugiere que lo medido es la estructura del prompt y no una peculiaridad de un
-  proveedor. El ahorro difiere (65,3 % frente a 60,1 %) porque Anthropic cobra la escritura en
+  parecen sitúa el efecto en la estructura del prompt y no en el mecanismo de un proveedor
+  concreto. El ahorro difiere (65,3 % frente a 60,1 %) porque Anthropic cobra la escritura en
   caché a 1,25 veces el precio de entrada y DeepSeek no.
-- Límite que esto NO resuelve, y que conviene no confundir: **replicado entre proveedores no es
-  replicado entre cargas.** Sigue siendo una sola carga sintética.
+- Alcance: dos proveedores, una sola carga sintética. **Replicado entre proveedores no es
+  replicado entre cargas.**
 - Tres corridas con ahorros de 0,6010, 0,6011 y 0,6010: dispersión de 0,0001.
 
 ### La bitácora de Anthropic es la primera reproducible de principio a fin
@@ -32,9 +31,8 @@ encontrado.
 - Se ejecutó con el árbol limpio y sobre un commit publicado (`62b8c05`), de modo que el sello
   declara `arbol_limpio: true` y un `commit` que cualquiera puede obtener. Una ejecución
   anterior del mismo piloto, media hora antes, salió con el árbol sucio y dos commits de
-  retraso; se descartó y no se publica. La diferencia no es cosmética: sin eso, un tercero
-  puede comprobar que la cadena está íntegra, pero no puede reconstruir el código que la
-  produjo.
+  retraso; se descartó y no se publica por no ser reproducible: el código que la produjo no es
+  recuperable.
 - Ancla temporal RFC 3161 de FreeTSA sobre su digest final, en
   `sello/piloto_anthropic_20261122_220948_bb1b11/`. Instante acreditado: 23 de noviembre de
   2026, 03:22:02 GMT. `Verification: OK`, estado `Granted`, y el valor sellado es el digest
@@ -46,35 +44,29 @@ encontrado.
 - Leía el costo por nombre fijo, `costos_usd["peak"]`. La bitácora de Anthropic, que llama
   `standard` a la suya, quedaba **rechazada entera**: 48 registros marcados como «sin costo
   utilizable» e `integra: false` sobre una cadena cuyos digest estaban intactos.
-- Importa más de lo que parece: esa herramienta es la que el repositorio le ofrece a un tercero
-  para comprobar la evidencia sin instalar nada. Declaraba rota una bitácora válida, que en un
-  verificador es peor que no detectar una manipulación, porque desacredita la evidencia
-  legítima.
-- Ninguna prueba lo habría encontrado: todas las bitácoras existentes eran de DeepSeek. Lo
-  destapó el segundo proveedor, que era justamente el argumento para hacer ese piloto.
+- Esa herramienta es la que el repositorio le ofrece a un tercero para comprobar la evidencia
+  sin instalar nada, de modo que el fallo consistía en declarar rota una bitácora válida.
+- Ninguna prueba lo habría encontrado: todas las bitácoras existentes eran de DeepSeek.
 - La regla que sustituye al nombre fijo es la del preflight: de las tarifas presentes en cada
-  registro se toma siempre la más cara. Tomar la barata inflaría el ahorro publicado sin que
-  nadie lo note. En empate se toma la primera alfabéticamente, para que el resultado no dependa
+  registro se toma siempre la más cara, porque la barata inflaría el ahorro publicado. En
+  empate se toma la primera alfabéticamente, para que el resultado no dependa
   del orden del diccionario. La salida declara en `tarifa_usada` y en `limites` cuál se usó.
 - Sin cambio para DeepSeek: sigue eligiendo `peak`, con los mismos ahorros recalculados.
 - Cuatro pruebas nuevas, una de ellas sobre todas las bitácoras publicadas del repositorio.
 
-### La latencia por totales no mide el método, mide la peor llamada
+### La latencia por totales está dominada por la llamada más lenta
 
-Esto dejó de ser una precaución y pasó a ser demostrable. Dos corridas del mismo piloto, con
-media hora de diferencia:
+Dos corridas del mismo piloto, con media hora de diferencia:
 
 | Corrida | «Reducción de latencia» sobre totales | Medianas de las 16 llamadas |
 |---|---|---|
 | Anthropic 21:13, corrida 1 | **+83,1 %** a favor de `modec` | 1 754 ms frente a 1 609 ms |
 | Anthropic 22:09, corrida 2 | **−99,2 %** en contra de `modec` | 1 584 ms frente a 1 629 ms |
 
-- En la primera, una llamada del brazo base se colgó unos 63 segundos; en la segunda le tocó al
+- En la primera, una llamada del brazo base se colgó unos 63 segundos; en la segunda, una del
   brazo `modec`. Las medianas se mantuvieron entre 1 555 y 1 754 ms en los dos brazos de las
   seis corridas: de −2,8 % a +5,2 %.
-- Un número que salta de +83 % a −99 % según qué llamada tropiece no es un efecto. Confirma la
-  decisión de 0.2.0 de publicar la latencia como rango y dispersión, y queda escrito en ambos
-  README con las dos cifras a la vista en vez de con la conclusión sola.
+- Ambos README publican las dos cifras extremas junto con las medianas, no la conclusión sola.
 
 ### Documentación
 
@@ -87,12 +79,10 @@ media hora de diferencia:
 
 - La tabla de replicación va entre marcadores `<!-- TABLA-REPLICACION -->` en ambos README y una
   prueba la compara **celda por celda** con los `resumen.json` de las bitácoras.
-- La primera versión de esa prueba usaba `assertIn` sobre el documento entero y **no servía**: la
-  misma cifra aparece en la tabla de replicación y en la de detalle, así que alterar una de las
-  dos la dejaba pasar. Se comprobó alterando a mano una celda y viendo que la prueba seguía en
-  verde. Una prueba que no falla cuando debería es peor que no tenerla, porque da por vigilado lo
-  que no lo está. La versión que quedó compara el bloque delimitado y falla nombrando el
-  documento y la bitácora.
+  Una versión anterior comparaba con `assertIn` sobre el documento entero y no detectaba una
+  celda alterada, porque la misma cifra aparece en dos tablas; se comprobó alterando una celda y
+  viendo que la prueba no fallaba. La versión que quedó compara el bloque delimitado y falla
+  nombrando el documento y la bitácora.
 - Otra prueba exige que, si un README cita el valor extremo favorable de latencia (+83,1 %),
   cite también el desfavorable (−99,2 %), y que la discusión de latencia nombre la mediana.
 - Suite de 66 a 69 pruebas.

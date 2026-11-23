@@ -103,7 +103,7 @@ Hay **tres bitácoras publicadas**, de dos proveedores. El 2026-11-21 hubo adem�
 
 #### El efecto se replica en dos proveedores con mecanismos de caché distintos
 
-Es el resultado que más pesa, y no es el ahorro: es que **la tasa de acierto de caché se reproduce casi exactamente en dos proveedores que cachean de forma diferente**. DeepSeek cachea el prefijo por su cuenta; Anthropic solo cachea lo que el cliente marca con `cache_control`. Mismo reordenamiento, mismas tasas:
+DeepSeek cachea el prefijo por su cuenta; Anthropic solo cachea lo que el cliente marca con `cache_control`. Con el mismo reordenamiento, las tasas de acierto coinciden:
 
 <!-- TABLA-REPLICACION -->
 | Acierto de caché | `ingenua_rol` | `modec` | Ahorro de costo |
@@ -112,9 +112,9 @@ Es el resultado que más pesa, y no es el ahorro: es que **la tasa de acierto de
 | **Anthropic** `claude-haiku-5-5` (2026-11-22) | 38,9 % | 84,0 % | 60,1 % |
 <!-- /TABLA-REPLICACION -->
 
-Que las tasas coincidan dentro de punto y medio sugiere que lo que se mide es **la estructura del prompt**, no una peculiaridad de un proveedor. El ahorro de costo sí difiere entre los dos (65,3 % frente a 60,1 %) porque las tarifas son distintas: Anthropic cobra la escritura en caché a 1,25 veces el precio de entrada, y DeepSeek no.
+La diferencia entre las tasas de los dos proveedores es de punto y medio, lo que sitúa el efecto en **la estructura del prompt** y no en el mecanismo de caché de un proveedor concreto. El ahorro de costo sí difiere (65,3 % frente a 60,1 %) porque las tarifas son distintas: Anthropic cobra la escritura en caché a 1,25 veces el precio de entrada, y DeepSeek no.
 
-Con un solo proveedor esto era una observación. Con dos, y con mecanismos que no se parecen, es un resultado replicado. Sigue siendo una sola carga sintética: **replicado entre proveedores no es replicado entre cargas**, y su carga sigue siendo cosa suya medirla.
+Alcance de la replicación: dos proveedores, **una sola carga sintética**. Replicado entre proveedores no es replicado entre cargas.
 
 #### Detalle de cada piloto
 
@@ -137,16 +137,16 @@ Con un solo proveedor esto era una observación. Con dos, y con mecanismos que n
 **Reproducibilidad.** El piloto del 2026-11-21 (versión 0.1.0, otro código y otros valores aleatorios) dio 39,0 % y 82,5 % de acierto de caché, USD 0,0347 y USD 0,0121 de costo, y 65,3 % de ahorro en las tres corridas. Las dos ejecuciones coinciden hasta la cuarta cifra significativa en el costo del brazo base. No es un número que salió una vez.
 
 - **Procedencia:** los tokens son MEDIDOS a partir del campo `usage` de DeepSeek. El costo es DERIVADO de la tarifa declarada en `datos/precios.json` y no es la factura; conviene contrastarlo con el panel de uso del proveedor.
-- **Latencia: no hay efecto medible, y ahora se puede demostrar por qué.** El piloto de Anthropic hizo visible algo que las cifras de latencia de DeepSeek solo insinuaban: **el total por corrida no mide el método, mide la peor llamada.** Dos corridas del mismo piloto, con media hora de diferencia, dieron esto:
+- **Latencia: no hay efecto medible.** El total por corrida está dominado por la llamada más lenta, no por el método. Dos corridas del mismo piloto, con media hora de diferencia:
 
   | Corrida | «Reducción de latencia» calculada sobre totales | Medianas de las 16 llamadas |
   |---|---|---|
   | Anthropic 21:13, corrida 1 | **+83,1 %** a favor de `modec` | 1 754 ms frente a 1 609 ms (+8 %) |
   | Anthropic 22:09, corrida 2 | **−99,2 %** en contra de `modec` | 1 584 ms frente a 1 629 ms (−3 %) |
 
-  En el primer caso una llamada del brazo base se colgó unos 63 segundos; en el segundo le tocó al brazo `modec`. Las medianas, que no se dejan arrastrar por un valor extremo, se mantuvieron entre 1 555 y 1 754 ms en los dos brazos de las seis corridas: de −2,8 % a +5,2 %. **Un número que salta de +83 % a −99 % según qué llamada tropiece no es un efecto.**
+  En la primera, una llamada del brazo base se colgó unos 63 segundos; en la segunda, una del brazo `modec`. Las medianas se mantuvieron entre 1 555 y 1 754 ms en los dos brazos de las seis corridas: de −2,8 % a +5,2 %.
 
-  Por eso el informe publica la latencia como rango y dispersión y no como resultado, y por eso esta sección no la cuenta entre los beneficios. **El beneficio medido es de costo, no de velocidad**, y tampoco hay evidencia de que cueste velocidad.
+  El informe publica la latencia como rango y dispersión, no como resultado. **El beneficio medido es de costo, no de velocidad**, y tampoco hay evidencia de que cueste velocidad.
 - **Evidencia:** las tres bitácoras selladas con la cadena mínima integrada están en `evidencia/piloto_deepseek_20261121/`, `evidencia/piloto_deepseek_20261122_135846_5c1d7c/` y `evidencia/piloto_anthropic_20261122_220948_bb1b11/` (50 registros cada una: el plan, 48 llamadas y el resumen). No contienen prompts, respuestas ni claves, solo huellas, conteos, latencias y costos. Se publican con el nombre de carpeta que produjo el programa, sin renombrar.
 - **Verificación independiente**, sin instalar nada:
   ```bash
@@ -168,7 +168,7 @@ Con un solo proveedor esto era una observación. Con dos, y con mecanismos que n
   openssl ts -verify -in ancla.tsr -queryfile ancla.tsq -CAfile cacert.pem -untrusted tsa.crt
   ```
   `verificar_independiente.py` comprueba por su cuenta que el ancla **contiene el digest final de esa cadena** —es decir, que es su ancla y no la de otra— pero **no comprueba la firma** de la autoridad, porque eso exige leer ASN.1 y la herramienta no tiene dependencias. Lo declara en su salida en vez de darlo por hecho.
-- **Límites:** las tres bitácoras se sellaron sin clave HMAC, así que se comprueba su integridad pero no su autoría. No son equivalentes entre sí, y el verificador lo dice por su cuenta en vez de dejarlo a la buena voluntad del lector:
+- **Límites:** las tres bitácoras se sellaron sin clave HMAC, así que se comprueba su integridad pero no su autoría. No son equivalentes entre sí, y el verificador declara la diferencia en su salida:
 
   | Bitácora | Ancla | Fecha y commit dentro del sello | Árbol limpio |
   |---|---|---|---|
