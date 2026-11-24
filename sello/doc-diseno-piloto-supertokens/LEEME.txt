@@ -1,16 +1,20 @@
-﻿Ancla temporal RFC 3161 de la bitácora evidencia\piloto_deepseek_20261122_135846_5c1d7c
+﻿Ancla temporal RFC 3161 del documento docs\diseno-piloto-supertokens.md
 
-Valor sellado: digest SHA-256 del último registro de la cadena (secuencia , tipo ),
-que encadena a todos los anteriores:
+Valor sellado: digest SHA-256 de la FORMA CANÓNICA del documento, es decir del archivo sin BOM y
+con finales de línea LF:
 
     0c663b2042f1bc5c1712f4f799f92ea33e71ebead86155e9359d18431632809c
 
 Autoridad : FreeTSA (https://freetsa.org/tsr)
 Sellado el: Nov 24 01:36:56 2026 GMT
 
-QUÉ ACREDITA: que ese digest, y por tanto la cadena completa que lo produce, existía a más tardar
-en ese instante. NO acredita autoría, NO acredita que el contenido sea cierto, y NO acredita la
-fecha declarada dentro de la bitácora, que la pone el equipo que ejecutó el piloto.
+QUÉ ACREDITA: que un documento con ese contenido exacto existía a más tardar en ese instante. NO
+acredita autoría, NO acredita que el contenido sea cierto, y NO acredita ninguna fecha escrita
+dentro del documento.
+
+POR QUÉ LA FORMA CANÓNICA Y NO LOS BYTES: la copia de trabajo en Windows lleva CRLF y la que
+descarga un tercero desde GitHub lleva LF. Un sello sobre los bytes valdría para una sola de las
+dos. El digest canónico es el mismo en ambas.
 
 Los certificados tsa.crt y cacert.pem se publican junto al sello a propósito: si FreeTSA dejara de
 estar disponible, quien quiera verificar los necesitaría. Son certificados públicos, no secretos.
@@ -22,10 +26,10 @@ CÓMO VERIFICARLO (necesita openssl):
 
 Debe responder exactamente: Verification: OK
 
-Y para comprobar que el valor sellado es el de esta bitácora, y no el de otra, desde la raíz del
+Y para comprobar que el valor sellado es el de este documento, y no el de otro, desde la raíz del
 repositorio:
 
-    python herramientas/digest_final.py evidencia/piloto_deepseek_20261122_135846_5c1d7c
+    python herramientas/digest_documento.py docs/diseno-piloto-supertokens.md
     openssl ts -query -in sello/doc-diseno-piloto-supertokens/ancla.tsq -text
 
 El valor que imprime el primero debe coincidir con el bloque "Message data" de la salida del

@@ -1,16 +1,16 @@
 ﻿2026-11-22T22:22:01-05:00  === Ancla temporal RFC 3161 — MODEC-CE ===
 2026-11-22T22:22:01-05:00  bitacora : evidencia\piloto_anthropic_20261122_220948_bb1b11
-2026-11-22T22:22:01-05:00  destino  : C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_anthropic_20261122_220948_bb1b11
+2026-11-22T22:22:01-05:00  destino  : sello\piloto_anthropic_20261122_220948_bb1b11
 2026-11-22T22:22:01-05:00  autoridad: https://freetsa.org/tsr
-2026-11-22T22:22:01-05:00  openssl  : C:\Program Files\Git\usr\bin\openssl.exe  (OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026))
-2026-11-22T22:22:01-05:00  curl     : C:\WINDOWS\system32\curl.exe
+2026-11-22T22:22:01-05:00  openssl  : openssl.exe  (OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026))
+2026-11-22T22:22:01-05:00  curl     : curl.exe
 2026-11-22T22:22:02-05:00  registros: 50 (ultimo: secuencia 49, tipo RESUMEN)
 2026-11-22T22:22:02-05:00  DIGEST SELLADO: f0ba27962c3f69c5a448c904ccfb2a74d35dad1363ac362c8d16f67be836183b
 2026-11-22T22:22:02-05:00    openssl: Using configuration from /usr/ssl/openssl.cnf
-2026-11-22T22:22:02-05:00  solicitud: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_anthropic_20261122_220948_bb1b11\ancla.tsq (70 bytes)
-2026-11-22T22:22:03-05:00  respuesta: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_anthropic_20261122_220948_bb1b11\ancla.tsr (4645 bytes)
-2026-11-22T22:22:05-05:00  certificado: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_anthropic_20261122_220948_bb1b11\tsa.crt (2273 bytes) sha256=8bfb0305bb64e2571ca507552ef3245cb1c2fee8728e0ff8689225081ea13467
-2026-11-22T22:22:05-05:00  certificado: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_anthropic_20261122_220948_bb1b11\cacert.pem (2833 bytes) sha256=2151b61137ffa86bf664691ba67e7da0b19f98c758e3d228d5d8ebf27e044438
+2026-11-22T22:22:02-05:00  solicitud: sello\piloto_anthropic_20261122_220948_bb1b11\ancla.tsq (70 bytes)
+2026-11-22T22:22:03-05:00  respuesta: sello\piloto_anthropic_20261122_220948_bb1b11\ancla.tsr (4645 bytes)
+2026-11-22T22:22:05-05:00  certificado: sello\piloto_anthropic_20261122_220948_bb1b11\tsa.crt (2273 bytes) sha256=8bfb0305bb64e2571ca507552ef3245cb1c2fee8728e0ff8689225081ea13467
+2026-11-22T22:22:05-05:00  certificado: sello\piloto_anthropic_20261122_220948_bb1b11\cacert.pem (2833 bytes) sha256=2151b61137ffa86bf664691ba67e7da0b19f98c758e3d228d5d8ebf27e044438
 2026-11-22T22:22:05-05:00  verificacion: Using configuration from /usr/ssl/openssl.cnf
 Warning: certificate from 'tsa.crt' with subject '/O=Free TSA/OU=TSA/description=This certificate digitally signs documents and time stamp requests made using the freetsa.org online services/CN=www.freetsa.org/emailAddress=busilezas@mailbox.org/L=Wuerzburg/C=DE/ST=Bayern' is not a CA cert
 Verification: OK
@@ -39,7 +39,7 @@ Extensions:
 2026-11-22T22:22:06-05:00  INSTANTE ACREDITADO: Nov 23 03:22:02 2026 GMT
 2026-11-22T22:22:06-05:00  
 2026-11-22T22:22:06-05:00  === TERMINADO SIN ERRORES ===
-2026-11-22T22:22:06-05:00  Archivos en: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_anthropic_20261122_220948_bb1b11
+2026-11-22T22:22:06-05:00  Archivos en: sello\piloto_anthropic_20261122_220948_bb1b11
 2026-11-22T22:22:06-05:00    ancla.tsq  70 bytes
 2026-11-22T22:22:06-05:00    ancla.tsr  4645 bytes
 2026-11-22T22:22:06-05:00    cacert.pem  2833 bytes

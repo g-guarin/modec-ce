@@ -57,9 +57,21 @@ function Nota($m) {
 }
 function Falla($m) { $script:fallos++; Nota "ERROR: $m" }
 
+# registro_sellado.txt se publica en el repositorio, asi que todo lo que se escriba en el va
+# relativo a la raiz: la ruta absoluta de la maquina que sella no le sirve a quien verifica, y
+# expone el nombre de usuario y la estructura de carpetas de quien ejecuta. Lo que esta fuera del
+# repositorio -openssl, curl- se registra solo por su nombre de archivo.
+function Rel($p) {
+    $raiz = $PSScriptRoot.TrimEnd('\') + '\'
+    if ("$p".StartsWith($raiz, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return "$p".Substring($raiz.Length)
+    }
+    return (Split-Path -Leaf "$p")
+}
+
 Nota "=== Ancla temporal RFC 3161 — MODEC-CE ==="
-Nota "bitacora : $Bitacora"
-Nota "destino  : $destino"
+if (-not $esDocumento) { Nota "bitacora : $Bitacora" }
+Nota "destino  : $(Rel $destino)"
 Nota "autoridad: $Tsa"
 
 # --- 1. Herramientas -----------------------------------------------------------------------
@@ -72,11 +84,11 @@ if (-not $openssl) {
     }
 }
 if (-not $openssl) { Falla 'no se encontró openssl (viene con Git para Windows)'; }
-else { Nota "openssl  : $openssl  ($(& $openssl version 2>&1))" }
+else { Nota "openssl  : $(Rel $openssl)  ($(& $openssl version 2>&1))" }
 
 # curl.exe, no el alias curl de PowerShell, que es otro comando y no sirve aquí.
 $curl = (Get-Command curl.exe -ErrorAction SilentlyContinue).Source
-if (-not $curl) { Falla 'no se encontró curl.exe' } else { Nota "curl     : $curl" }
+if (-not $curl) { Falla 'no se encontró curl.exe' } else { Nota "curl     : $(Rel $curl)" }
 
 $py = 'python'
 if (Get-Command py -ErrorAction SilentlyContinue) { $py = 'py' }
@@ -85,9 +97,9 @@ if ($fallos -gt 0) { Nota 'Faltan herramientas. Se detiene.'; exit 1 }
 # --- 2. Digest de lo que se sella ----------------------------------------------------------
 if ($esDocumento) {
     $archivo = Join-Path $PSScriptRoot $Documento
-    if (-not (Test-Path -LiteralPath $archivo)) { Falla "no existe $archivo"; exit 1 }
+    if (-not (Test-Path -LiteralPath $archivo)) { Falla "no existe $(Rel $archivo)"; exit 1 }
     $lector = Join-Path $PSScriptRoot (Join-Path 'herramientas' 'digest_documento.py')
-    if (-not (Test-Path -LiteralPath $lector)) { Falla "no existe $lector"; exit 1 }
+    if (-not (Test-Path -LiteralPath $lector)) { Falla "no existe $(Rel $lector)"; exit 1 }
     $salida = (& $py -I $lector $archivo --campos 2>&1) -join ' '
     if ($LASTEXITCODE -ne 0) { Falla "no se pudo leer el documento: $salida"; exit 1 }
     $campos = $salida.Trim() -split '\s+'
@@ -99,13 +111,13 @@ if ($esDocumento) {
 else {
 
 $jsonl = Join-Path $PSScriptRoot (Join-Path $Bitacora 'evidencia.jsonl')
-if (-not (Test-Path -LiteralPath $jsonl)) { Falla "no existe $jsonl"; exit 1 }
+if (-not (Test-Path -LiteralPath $jsonl)) { Falla "no existe $(Rel $jsonl)"; exit 1 }
 
 # Se invoca un archivo, no `python -c "..."`: PowerShell elimina las comillas dobles al pasar
 # argumentos a un programa externo, así que el código en línea llegaba con `encoding=utf-8` sin
 # comillas y fallaba. Un archivo no tiene ese problema, y además le sirve a quien verifique.
 $lector = Join-Path $PSScriptRoot (Join-Path 'herramientas' 'digest_final.py')
-if (-not (Test-Path -LiteralPath $lector)) { Falla "no existe $lector"; exit 1 }
+if (-not (Test-Path -LiteralPath $lector)) { Falla "no existe $(Rel $lector)"; exit 1 }
 $salida = (& $py -I $lector $jsonl --campos 2>&1) -join ' '
 if ($LASTEXITCODE -ne 0) { Falla "no se pudo leer la bitácora: $salida"; exit 1 }
 $campos = $salida.Trim() -split '\s+'
@@ -128,7 +140,7 @@ $tsq = 'ancla.tsq'
 $tsr = 'ancla.tsr'
 & $openssl ts -query -digest $digest -sha256 -cert -out $tsq 2>&1 | ForEach-Object { Nota "  openssl: $_" }
 if (-not (Test-Path -LiteralPath $tsq)) { Falla 'no se creó la solicitud'; exit 1 }
-Nota "solicitud: $destino\$tsq ($((Get-Item $tsq).Length) bytes)"
+Nota "solicitud: $(Rel $destino)\$tsq ($((Get-Item $tsq).Length) bytes)"
 
 # --- 4. Envío ------------------------------------------------------------------------------
 # -o, nunca ">": la redirección de PowerShell pasa la salida por un filtro de texto y corrompe
@@ -137,7 +149,7 @@ Nota "solicitud: $destino\$tsq ($((Get-Item $tsq).Length) bytes)"
     ForEach-Object { Nota "  curl: $_" }
 if (-not (Test-Path -LiteralPath $tsr)) { Falla 'no se recibió respuesta'; exit 1 }
 $bytes = (Get-Item $tsr).Length
-Nota "respuesta: $destino\$tsr ($bytes bytes)"
+Nota "respuesta: $(Rel $destino)\$tsr ($bytes bytes)"
 if ($bytes -lt 1000) {
     Falla "la respuesta es demasiado pequeña; probablemente sea un mensaje de error en texto:"
     Nota (Get-Content -LiteralPath $tsr -Raw -ErrorAction SilentlyContinue)
@@ -151,7 +163,7 @@ $certCa = 'cacert.pem'
 & $curl -sS $UrlCertCa -o $certCa 2>&1 | ForEach-Object { Nota "  curl: $_" }
 foreach ($c in @($certTsa, $certCa)) {
     if (-not (Test-Path -LiteralPath $c)) { Falla "no se descargó $c"; exit 1 }
-    Nota "certificado: $destino\$c ($((Get-Item $c).Length) bytes) sha256=$((Get-FileHash $c -Algorithm SHA256).Hash.ToLower())"
+    Nota "certificado: $(Rel $destino)\$c ($((Get-Item $c).Length) bytes) sha256=$((Get-FileHash $c -Algorithm SHA256).Hash.ToLower())"
 }
 $huella = (Get-FileHash $certTsa -Algorithm SHA256).Hash.ToLower()
 if ($huella -ne $HuellaCertTsa.ToLower()) {
@@ -177,6 +189,52 @@ Nota "INSTANTE ACREDITADO: $instante"
 } finally { Pop-Location }
 
 # --- 7. LEEME para quien verifique ---------------------------------------------------------
+# Dos plantillas, no una: en el modo -Documento no hay cadena, ni secuencia, ni tipo, y la
+# comprobacion del valor sellado se hace con digest_documento.py sobre el documento. Reutilizar
+# la plantilla de bitacora deja un LEEME.txt que nombra una bitacora ajena y propone un comando
+# que imprime otro digest, de modo que quien verifique concluye que el sello no corresponde.
+if ($esDocumento) {
+$leeme = @"
+Ancla temporal RFC 3161 del documento $Documento
+
+Valor sellado: digest SHA-256 de la FORMA CANÓNICA del documento, es decir del archivo sin BOM y
+con finales de línea LF:
+
+    $digest
+
+Autoridad : FreeTSA ($Tsa)
+Sellado el: $instante
+
+QUÉ ACREDITA: que un documento con ese contenido exacto existía a más tardar en ese instante. NO
+acredita autoría, NO acredita que el contenido sea cierto, y NO acredita ninguna fecha escrita
+dentro del documento.
+
+POR QUÉ LA FORMA CANÓNICA Y NO LOS BYTES: la copia de trabajo en Windows lleva CRLF y la que
+descarga un tercero desde GitHub lleva LF. Un sello sobre los bytes valdría para una sola de las
+dos. El digest canónico es el mismo en ambas.
+
+Los certificados tsa.crt y cacert.pem se publican junto al sello a propósito: si FreeTSA dejara de
+estar disponible, quien quiera verificar los necesitaría. Son certificados públicos, no secretos.
+Sus huellas SHA-256 están en registro_sellado.txt, junto a la fecha en que se descargaron.
+
+CÓMO VERIFICARLO (necesita openssl):
+
+    openssl ts -verify -in ancla.tsr -queryfile ancla.tsq -CAfile cacert.pem -untrusted tsa.crt
+
+Debe responder exactamente: Verification: OK
+
+Y para comprobar que el valor sellado es el de este documento, y no el de otro, desde la raíz del
+repositorio:
+
+    python herramientas/digest_documento.py $($Documento -replace '\\','/')
+    openssl ts -query -in sello/$nombre/ancla.tsq -text
+
+El valor que imprime el primero debe coincidir con el bloque "Message data" de la salida del
+segundo. openssl lo muestra como volcado hexadecimal repartido en varias líneas y con espacios,
+así que hay que compararlo quitando los espacios, no línea a línea.
+"@
+}
+else {
 $leeme = @"
 Ancla temporal RFC 3161 de la bitácora $Bitacora
 
@@ -212,11 +270,12 @@ El valor que imprime el primero debe coincidir con el bloque "Message data" de l
 segundo. openssl lo muestra como volcado hexadecimal repartido en varias líneas y con espacios,
 así que hay que compararlo quitando los espacios, no línea a línea.
 "@
+}
 Set-Content -LiteralPath (Join-Path $destino 'LEEME.txt') -Value $leeme -Encoding utf8
 
 Nota ''
 Nota "=== TERMINADO SIN ERRORES ==="
-Nota "Archivos en: $destino"
+Nota "Archivos en: $(Rel $destino)"
 Get-ChildItem -LiteralPath $destino | ForEach-Object { Nota ("  " + $_.Name + "  " + $_.Length + " bytes") }
 Nota ''
 Nota 'Nada se ha publicado todavía. Revise el contenido antes de hacer commit.'
