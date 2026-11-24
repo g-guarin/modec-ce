@@ -1,16 +1,16 @@
 ﻿2026-11-22T17:17:21-05:00  === Ancla temporal RFC 3161 — MODEC-CE ===
 2026-11-22T17:17:21-05:00  bitacora : evidencia\piloto_deepseek_20261122_135846_5c1d7c
-2026-11-22T17:17:21-05:00  destino  : C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_deepseek_20261122_135846_5c1d7c
+2026-11-22T17:17:21-05:00  destino  : sello\piloto_deepseek_20261122_135846_5c1d7c
 2026-11-22T17:17:21-05:00  autoridad: https://freetsa.org/tsr
-2026-11-22T17:17:22-05:00  openssl  : C:\Program Files\Git\usr\bin\openssl.exe  (OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026))
-2026-11-22T17:17:22-05:00  curl     : C:\WINDOWS\system32\curl.exe
+2026-11-22T17:17:22-05:00  openssl  : openssl.exe  (OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026))
+2026-11-22T17:17:22-05:00  curl     : curl.exe
 2026-11-22T17:17:23-05:00  registros: 50 (ultimo: secuencia 49, tipo RESUMEN)
 2026-11-22T17:17:23-05:00  DIGEST SELLADO: 47ade05769876bf28c4e2fbe2feeda24d82871e9a6c563f4133cfdb14e1942fa
 2026-11-22T17:17:23-05:00    openssl: Using configuration from /usr/ssl/openssl.cnf
-2026-11-22T17:17:24-05:00  solicitud: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_deepseek_20261122_135846_5c1d7c\ancla.tsq (69 bytes)
-2026-11-22T17:17:25-05:00  respuesta: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_deepseek_20261122_135846_5c1d7c\ancla.tsr (4642 bytes)
-2026-11-22T17:17:26-05:00  certificado: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_deepseek_20261122_135846_5c1d7c\tsa.crt (2273 bytes) sha256=8bfb0305bb64e2571ca507552ef3245cb1c2fee8728e0ff8689225081ea13467
-2026-11-22T17:17:26-05:00  certificado: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_deepseek_20261122_135846_5c1d7c\cacert.pem (2833 bytes) sha256=2151b61137ffa86bf664691ba67e7da0b19f98c758e3d228d5d8ebf27e044438
+2026-11-22T17:17:24-05:00  solicitud: sello\piloto_deepseek_20261122_135846_5c1d7c\ancla.tsq (69 bytes)
+2026-11-22T17:17:25-05:00  respuesta: sello\piloto_deepseek_20261122_135846_5c1d7c\ancla.tsr (4642 bytes)
+2026-11-22T17:17:26-05:00  certificado: sello\piloto_deepseek_20261122_135846_5c1d7c\tsa.crt (2273 bytes) sha256=8bfb0305bb64e2571ca507552ef3245cb1c2fee8728e0ff8689225081ea13467
+2026-11-22T17:17:26-05:00  certificado: sello\piloto_deepseek_20261122_135846_5c1d7c\cacert.pem (2833 bytes) sha256=2151b61137ffa86bf664691ba67e7da0b19f98c758e3d228d5d8ebf27e044438
 2026-11-22T17:17:26-05:00  verificacion: Using configuration from /usr/ssl/openssl.cnf
 Warning: certificate from 'tsa.crt' with subject '/O=Free TSA/OU=TSA/description=This certificate digitally signs documents and time stamp requests made using the freetsa.org online services/CN=www.freetsa.org/emailAddress=busilezas@mailbox.org/L=Wuerzburg/C=DE/ST=Bayern' is not a CA cert
 Verification: OK
@@ -39,7 +39,7 @@ Extensions:
 2026-11-22T17:17:27-05:00  INSTANTE ACREDITADO: Nov 22 22:17:24 2026 GMT
 2026-11-22T17:17:27-05:00  
 2026-11-22T17:17:27-05:00  === TERMINADO SIN ERRORES ===
-2026-11-22T17:17:27-05:00  Archivos en: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\piloto_deepseek_20261122_135846_5c1d7c
+2026-11-22T17:17:27-05:00  Archivos en: sello\piloto_deepseek_20261122_135846_5c1d7c
 2026-11-22T17:17:27-05:00    ancla.tsq  69 bytes
 2026-11-22T17:17:27-05:00    ancla.tsr  4642 bytes
 2026-11-22T17:17:27-05:00    cacert.pem  2833 bytes

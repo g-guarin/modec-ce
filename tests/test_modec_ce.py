@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -1082,6 +1083,73 @@ class EvidenciaPublicadaTests(unittest.TestCase):
             lineas[4] = json.dumps(registro, ensure_ascii=False)
             (copia / "evidencia.jsonl").write_text("\n".join(lineas) + "\n", encoding="utf-8")
             self.assertFalse(self._verificador().verificar(copia)["integra"])
+
+
+class SelloPublicadoTests(unittest.TestCase):
+    """Dos defectos reales en `sello/`, ninguno detectado por una prueba.
+
+    El primero: `registro_sellado.txt` guardaba las rutas absolutas de la máquina que sella, de modo
+    que un repositorio público exponía el nombre de usuario de Windows y la estructura de carpetas.
+
+    El segundo, más grave: en el modo `-Documento` el script reutilizaba la plantilla de LEEME de las
+    bitácoras. El archivo resultante nombraba una bitácora que no se había sellado, traía «secuencia
+    , tipo » vacíos y proponía un comando de verificación que imprime OTRO digest. Quien siguiera esas
+    instrucciones al pie de la letra concluiría que el sello no corresponde al documento. Un texto de
+    verificación equivocado es peor que no tenerlo: afirma algo falso con la apariencia de una prueba.
+
+    La segunda prueba no lee el LEEME: ejecuta el comando que el propio LEEME indica y compara su
+    salida con el digest que certifica el token."""
+
+    RAIZ = Path(__file__).resolve().parents[1]
+    ABSOLUTA = re.compile(r"[A-Za-z]:\\")
+
+    def _sellos(self):
+        return sorted(d for d in (self.RAIZ / "sello").glob("*") if d.is_dir())
+
+    def test_ningun_archivo_del_sello_expone_rutas_de_la_maquina(self):
+        sellos = self._sellos()
+        if not sellos:
+            self.skipTest("sin sellos publicados")
+        for carpeta in sellos:
+            for archivo in sorted(carpeta.glob("*.txt")):
+                with self.subTest(archivo=f"{carpeta.name}/{archivo.name}"):
+                    texto = archivo.read_text(encoding="utf-8-sig")
+                    halladas = self.ABSOLUTA.findall(texto)
+                    self.assertFalse(halladas,
+                                     f"{archivo.name} expone {len(halladas)} ruta(s) absoluta(s)")
+
+    def test_el_leeme_de_un_sello_de_documento_verifica_ese_documento(self):
+        docs = [d for d in self._sellos() if d.name.startswith("doc-")]
+        if not docs:
+            self.skipTest("sin sellos de documento publicados")
+        for carpeta in docs:
+            with self.subTest(sello=carpeta.name):
+                leeme = (carpeta / "LEEME.txt").read_text(encoding="utf-8-sig")
+                self.assertNotIn("de la bitácora", leeme,
+                                 "el LEEME de un documento no debe presentarse como el de una bitácora")
+                self.assertNotIn("digest_final.py", leeme,
+                                 "digest_final.py lee cadenas de evidencia, no documentos")
+
+                orden = re.search(r"python (herramientas/digest_documento\.py \S+)", leeme)
+                self.assertIsNotNone(orden, "el LEEME no indica cómo comprobar el valor sellado")
+                guion, objetivo = orden.group(1).split()
+                self.assertTrue((self.RAIZ / objetivo).exists(),
+                                f"el LEEME apunta a {objetivo}, que no existe")
+
+                hecho = subprocess.run((sys.executable, "-I", str(self.RAIZ / guion),
+                                        str(self.RAIZ / objetivo)),
+                                       capture_output=True, text=True, cwd=self.RAIZ)
+                self.assertEqual(hecho.returncode, 0, hecho.stderr)
+                calculado = hecho.stdout.strip()
+
+                declarado = re.search(r"^ {4}([0-9a-f]{64})$", leeme, re.M)
+                self.assertIsNotNone(declarado, "el LEEME no declara el digest sellado")
+                self.assertEqual(calculado, declarado.group(1),
+                                 "el comando que indica el LEEME imprime un digest distinto del declarado")
+
+                tsq = (carpeta / "ancla.tsq").read_bytes().hex()
+                self.assertIn(calculado, tsq,
+                              "el digest del documento no es el que pidió sellar la solicitud")
 
 
 if __name__ == "__main__":
