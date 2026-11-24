@@ -1,0 +1,50 @@
+﻿2026-11-23T20:36:54-05:00  === Ancla temporal RFC 3161 — MODEC-CE ===
+2026-11-23T20:36:54-05:00  bitacora : evidencia\piloto_deepseek_20261122_135846_5c1d7c
+2026-11-23T20:36:54-05:00  destino  : C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\doc-diseno-piloto-supertokens
+2026-11-23T20:36:54-05:00  autoridad: https://freetsa.org/tsr
+2026-11-23T20:36:54-05:00  openssl  : C:\Program Files\Git\usr\bin\openssl.exe  (OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026))
+2026-11-23T20:36:55-05:00  curl     : C:\WINDOWS\system32\curl.exe
+2026-11-23T20:36:55-05:00  documento: docs\diseno-piloto-supertokens.md (10532 bytes en disco, 10532 canonicos, 212 lineas)
+2026-11-23T20:36:55-05:00  DIGEST SELLADO: 0c663b2042f1bc5c1712f4f799f92ea33e71ebead86155e9359d18431632809c
+2026-11-23T20:36:56-05:00    openssl: Using configuration from /usr/ssl/openssl.cnf
+2026-11-23T20:36:56-05:00  solicitud: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\doc-diseno-piloto-supertokens\ancla.tsq (70 bytes)
+2026-11-23T20:36:57-05:00  respuesta: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\doc-diseno-piloto-supertokens\ancla.tsr (4643 bytes)
+2026-11-23T20:36:58-05:00  certificado: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\doc-diseno-piloto-supertokens\tsa.crt (2273 bytes) sha256=8bfb0305bb64e2571ca507552ef3245cb1c2fee8728e0ff8689225081ea13467
+2026-11-23T20:36:58-05:00  certificado: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\doc-diseno-piloto-supertokens\cacert.pem (2833 bytes) sha256=2151b61137ffa86bf664691ba67e7da0b19f98c758e3d228d5d8ebf27e044438
+2026-11-23T20:36:58-05:00  verificacion: Using configuration from /usr/ssl/openssl.cnf
+Warning: certificate from 'tsa.crt' with subject '/O=Free TSA/OU=TSA/description=This certificate digitally signs documents and time stamp requests made using the freetsa.org online services/CN=www.freetsa.org/emailAddress=busilezas@mailbox.org/L=Wuerzburg/C=DE/ST=Bayern' is not a CA cert
+Verification: OK
+
+--- openssl ts -reply -text ---
+Using configuration from /usr/ssl/openssl.cnf
+Status info:
+Status: Granted.
+Status description: unspecified
+Failure info: unspecified
+
+TST info:
+Version: 1
+Policy OID: tsa_policy1
+Hash Algorithm: sha256
+Message data:
+    0000 - 0c 66 3b 20 42 f1 bc 5c-17 12 f4 f7 99 f9 2e a3   .f; B..\........
+    0010 - 3e 71 eb ea d8 61 55 e9-35 9d 18 43 16 32 80 9c   >q...aU.5..C.2..
+Serial number: 0x0A7A6569
+Time stamp: Nov 24 01:36:56 2026 GMT
+Accuracy: unspecified
+Ordering: yes
+Nonce: 0xD114258C4F0AAC62
+TSA: DirName:/O=Free TSA/OU=TSA/description=This certificate digitally signs documents and time stamp requests made using the freetsa.org online services/CN=www.freetsa.org/emailAddress=busilezas@mailbox.org/L=Wuerzburg/C=DE/ST=Bayern
+Extensions:
+2026-11-23T20:36:59-05:00  INSTANTE ACREDITADO: Nov 24 01:36:56 2026 GMT
+2026-11-23T20:36:59-05:00  
+2026-11-23T20:36:59-05:00  === TERMINADO SIN ERRORES ===
+2026-11-23T20:36:59-05:00  Archivos en: C:\Users\Usuario\Desktop\PLATAFOR-MENS (Workspace exclusive_claude)\06_MODEC\MODEC_CE\sello\doc-diseno-piloto-supertokens
+2026-11-23T20:36:59-05:00    ancla.tsq  70 bytes
+2026-11-23T20:36:59-05:00    ancla.tsr  4643 bytes
+2026-11-23T20:36:59-05:00    cacert.pem  2833 bytes
+2026-11-23T20:36:59-05:00    LEEME.txt  1705 bytes
+2026-11-23T20:36:59-05:00    registro_sellado.txt  3300 bytes
+2026-11-23T20:36:59-05:00    tsa.crt  2273 bytes
+2026-11-23T20:36:59-05:00  
+2026-11-23T20:36:59-05:00  Nada se ha publicado todavía. Revise el contenido antes de hacer commit.
